@@ -1,0 +1,11 @@
+config BR2_PACKAGE_HL2
+    bool "hl2"
+    depends on BR2_PACKAGE_HAS_JPEG
+    select BR2_PACKAGE_SDL2
+    select BR2_PACKAGE_OPENAL
+    select BR2_PACKAGE_GL4ES    if (!BR2_PACKAGE_HAS_LIBGL) && BR2_PACKAGE_HAS_LIBGLES
+    help
+      Source is a 3D game engine developed by Valve. It debuted as the successor to GoldSrc with Half-Life: Source in June 2004.
+      
+      https://github.com/nillerusr/source-engine
+
