@@ -12,7 +12,7 @@ HL2_CONF_OPTS = -T release --build-games=hl2 --prefix=/usr/bin/hl2
 HL2_NEEDS_EXTERNAL_WAF = NO
 HL2_LICENSE = SOURCE1SDK
 HL2_LICENSE_FILE = LICENSE
-HL2_DEPENDENCIES = sdl2 freetype fontconfig opus libpng libedit openal bzip2 libcurl zlib
+HL2_DEPENDENCIES = sdl2 freetype fontconfig opus libpng libjpeg libedit openal bzip2 libcurl zlib
 
 ifeq ($(BR2_PACKAGE_GL4ES),y)
     HL2_DEPENDENCIES += gl4es
