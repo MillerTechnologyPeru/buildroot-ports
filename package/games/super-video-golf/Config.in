@@ -1,0 +1,16 @@
+config BR2_PACKAGE_SUPER_VIDEO_GOLF
+	bool "super-video-golf"
+	select BR2_PACKAGE_SDL2
+	select BR2_PACKAGE_SDL2_OPENGL
+	select BR2_PACKAGE_OPENAL
+	select BR2_PACKAGE_OPUS
+	select BR2_PACKAGE_SQLITE
+	select BR2_PACKAGE_LIBCURL
+	select BR2_PACKAGE_LIBUNWIND
+	select BR2_PACKAGE_BULLET
+	select BR2_PACKAGE_TBB
+	help
+	  Super Video Golf is a local or networked multiplayer golfing sim, modeled on 90s era console and DOS games. 
+	  The game supports 8 players locally (on the same computer) with 4 controller support, hot seat keyboard play or a mixture of both.
+
+	  https://github.com/fallahn/crogine
