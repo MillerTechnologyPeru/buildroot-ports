@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ISO_CODES
+	bool "iso-codes"
+	help
+	  This project provides lists of various ISO standards (countries, languages, language scripts, and currency names) in one place. 
+	  It also provides their translations in gettext .po format.
+
+	  https://salsa.debian.org/iso-codes-team/iso-codes
