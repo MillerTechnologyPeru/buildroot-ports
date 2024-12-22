@@ -1,1 +1,5 @@
-sha256  91a3afd58401d4e5d81e30b08ee3f113a4768ff10140336a72a326c77272be30 gtk-4.9.4.tar.xz
+# From https://download.gnome.org/sources/gtk/4.14/gtk-4.14.5.sha256sum
+sha256  5547f2b9f006b133993e070b87c17804e051efda3913feaca1108fa2be41e24d  gtk-4.14.5.tar.xz
+
+# Hash for license file:
+sha256  b7993225104d90ddd8024fd838faf300bea5e83d91203eab98e29512acebd69c  COPYING

@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-LIBGTK4_VERSION_MAJOR = 4.9
-LIBGTK4_VERSION = $(LIBGTK4_VERSION_MAJOR).4
+LIBGTK4_VERSION_MAJOR = 4.14
+LIBGTK4_VERSION = $(LIBGTK4_VERSION_MAJOR).5
 LIBGTK4_SOURCE = gtk-$(LIBGTK4_VERSION).tar.xz
 LIBGTK4_SITE = https://download.gnome.org/sources/gtk/$(LIBGTK4_VERSION_MAJOR)
 LIBGTK4_LICENSE = LGPL-2.0+
@@ -14,108 +14,106 @@ LIBGTK4_CPE_ID_VENDOR = gnome
 LIBGTK4_CPE_ID_PRODUCT = gtk
 LIBGTK4_INSTALL_STAGING = YES
 
-LIBGTK4_DEPENDENCIES = host-pkgconf \
-	libglib2 \
-	cairo \
-	pango \
+LIBGTK4_DEPENDENCIES = \
+	host-pkgconf \
+	host-libgtk4 \
 	gdk-pixbuf \
-	libepoxy \
-	harfbuzz \
-	libpng \
-	libjpeg \
-	sqlite \
 	graphene \
-	gstreamer1 \
-	gst1-plugins-base \
-	gst1-plugins-bad \
+	libepoxy \
+	libglib2 \
+	pango \
+	$(TARGET_NLS_DEPENDENCIES)
 
-ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-LIBGTK4_CONF_OPTS += -Dintrospection=enabled
-LIBGTK4_DEPENDENCIES += gobject-introspection
+LIBGTK4_CONF_OPTS = \
+	-Dbuild-tests=false \
+	-Dbuild-testsuite=false \
+	-Dprint-cpdb=disabled \
+	-Dvulkan=disabled \
+	-Dcloudproviders=disabled \
+	-Dsysprof=disabled \
+	-Dtracker=disabled \
+	-Dcolord=disabled \
+	-Dintrospection=disabled \
+	-Ddocumentation=false \
+	-Dscreenshots=false \
+	-Dman-pages=false
+
+ifeq ($(BR2_PACKAGE_LIBGTK4_X11),y)
+LIBGTK4_DEPENDENCIES += xlib_libXcursor xlib_libXi xlib_libXinerama
+LIBGTK4_CONF_OPTS += -Dx11-backend=true
 else
-LIBGTK4_CONF_OPTS += -Dintrospection=disabled
+LIBGTK4_CONF_OPTS += -Dx11-backend=false
 endif
 
-ifeq ($(BR2_PACKAGE_WAYLAND),y)
+ifeq ($(BR2_PACKAGE_LIBGTK4_WAYLAND),y)
 LIBGTK4_DEPENDENCIES += wayland wayland-protocols libxkbcommon
+LIBGTK4_CONF_OPTS += -Dwayland-backend=true
+else
+LIBGTK4_CONF_OPTS += -Dwayland-backend=false
 endif
 
-ifeq ($(BR2_PACKAGE_XLIB_LIBXCURSOR),y)
-LIBGTK4_DEPENDENCIES += xlib_libXcursor
+ifeq ($(BR2_PACKAGE_LIBGTK4_BROADWAY),y)
+LIBGTK4_CONF_OPTS += -Dbroadway-backend=true
+else
+LIBGTK4_CONF_OPTS += -Dbroadway-backend=false
 endif
 
-ifeq ($(BR2_PACKAGE_XLIB_LIBXFIXES),y)
-LIBGTK4_DEPENDENCIES += xlib_libXfixes
-endif
-
-ifeq ($(BR2_PACKAGE_XLIB_LIBXCOMPOSITE),y)
-LIBGTK4_DEPENDENCIES += xlib_libXcomposite
-endif
-
-ifeq ($(BR2_PACKAGE_XLIB_LIBXDAMAGE),y)
-LIBGTK4_DEPENDENCIES += xlib_libXdamage
+ifeq ($(BR2_PACKAGE_LIBGTK4_GSTREAMER),y)
+LIBGTK4_CONF_OPTS += -Dmedia-gstreamer=enabled
+LIBGTK4_DEPENDENCIES += gstreamer1 gst1-plugins-base gst1-plugins-bad
+else
+LIBGTK4_CONF_OPTS += -Dmedia-gstreamer=disabled
 endif
 
 ifeq ($(BR2_PACKAGE_CUPS),y)
+LIBGTK4_CONF_OPTS += -Dprint-cups=enabled
 LIBGTK4_DEPENDENCIES += cups
+else
+LIBGTK4_CONF_OPTS += -Dprint-cups=disabled
 endif
 
 ifeq ($(BR2_PACKAGE_LIBGTK4_DEMO),y)
-LIBGTK4_CONF_OPTS += -Ddemos=true
+LIBGTK4_CONF_OPTS += -Dbuild-demos=true -Dbuild-examples=true
 LIBGTK4_DEPENDENCIES += hicolor-icon-theme shared-mime-info
 else
-LIBGTK4_CONF_OPTS += -Ddemos=false
+LIBGTK4_CONF_OPTS += -Dbuild-demos=false -Dbuild-examples=false
 endif
 
 define LIBGTK4_COMPILE_GLIB_SCHEMAS
 	$(HOST_DIR)/bin/glib-compile-schemas \
 		$(TARGET_DIR)/usr/share/glib-2.0/schemas
 endef
-
 LIBGTK4_POST_INSTALL_TARGET_HOOKS += LIBGTK4_COMPILE_GLIB_SCHEMAS
 
-# gtk+ >= 3.10 can build a native version of gtk-update-icon-cache if
-# --enable-gtk2-dependency=no is set when invoking './configure'.
-#
-# Unfortunately, if the target toolchain is based on uClibc, the macro
-# AM_GLIB_GNU_GETTEXT will detect the libintl built for the target and
-# will add '-lintl' to the default list of libraries for the linker (used
-# for both native and target builds).
-#
-# But no native version of libintl is available (the functions are
-# provided by glibc). So gtk-update-icon-cache will not build.
-#
-# As a workaround, we build gtk-update-icon-cache on our own, set
-# --enable-gtk2-dependency=yes and force './configure' to use our version.
+# here, we build a native gtk4-update-icon-cache as host-libgtk4
 
-HOST_LIBGTK4_DEPENDENCIES = host-pkgconf 
+HOST_LIBGTK4_DEPENDENCIES = \
+	host-gdk-pixbuf \
+	host-libglib2 \
+	host-pkgconf
 
 HOST_LIBGTK4_CFLAGS = \
-	`$(HOST_MAKE_ENV) $(PKG_CONFIG_HOST_BINARY) --cflags --libs gdk-pixbuf-2.0` \
-	`$(HOST_MAKE_ENV) $(PKG_CONFIG_HOST_BINARY) --cflags --libs gio-2.0`
+	-I $(@D)/gtk \
+	`$(HOST_MAKE_ENV) $(PKG_CONFIG_HOST_BINARY) --cflags --libs gdk-pixbuf-2.0`
 
 define HOST_LIBGTK4_CONFIGURE_CMDS
-	echo "#define GETTEXT_PACKAGE \"gtk30\"" >> $(@D)/gtk/config.h
+	echo "#define BUILD_TOOLS 1" >> $(@D)/gtk/config.h
+	echo "#define GETTEXT_PACKAGE \"gtk40\"" >> $(@D)/gtk/config.h
+	echo "#define GTK_LOCALEDIR \"/usr/share/locale\"" >> $(@D)/gtk/config.h
 	echo "#define HAVE_UNISTD_H 1" >> $(@D)/gtk/config.h
 	echo "#define HAVE_FTW_H 1" >> $(@D)/gtk/config.h
 endef
 
 define HOST_LIBGTK4_BUILD_CMDS
 	$(HOSTCC) $(HOST_CFLAGS) $(HOST_LDFLAGS) \
-		$(@D)/gtk/updateiconcache.c \
+		$(@D)/tools/updateiconcache.c $(@D)/gtk/gtkiconcachevalidator.c\
 		$(HOST_LIBGTK4_CFLAGS) \
-		-o $(@D)/gtk/gtk-update-icon-cache
-	$(HOSTCC) $(HOST_CFLAGS) $(HOST_LDFLAGS) \
-		$(@D)/gtk/encodesymbolic.c \
-		$(HOST_LIBGTK4_CFLAGS) \
-		-o $(@D)/gtk/gtk-encode-symbolic-svg
+		-o $(@D)/tools/gtk4-update-icon-cache
 endef
 
 define HOST_LIBGTK4_INSTALL_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/gtk/gtk-update-icon-cache \
-		$(HOST_DIR)/bin/gtk-update-icon-cache
-	$(INSTALL) -D -m 0755 $(@D)/gtk/gtk-encode-symbolic-svg \
-		$(HOST_DIR)/bin/gtk-encode-symbolic-svg
+	$(INSTALL) -D -m 0755 $(@D)/tools/gtk4-update-icon-cache \
+		$(HOST_DIR)/bin/gtk4-update-icon-cache
 endef
 
 # Create icon-theme.cache for each of the icon directories/themes
