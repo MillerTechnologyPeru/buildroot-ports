@@ -1,5 +1,11 @@
 menu "Swift Linux Ports"
 
+menu "apps"
+
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/epiphany/Config.in"
+
+endmenu
+
 menu "games"
 
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/devilutionx/Config.in"
@@ -34,4 +40,12 @@ menu "games"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/super-video-golf/Config.in"
 
 endmenu
+
+menu "libs"
+
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libgtk4/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/graphene/Config.in"
+
+endmenu
+
 endmenu
