@@ -1,9 +1,6 @@
 config BR2_PACKAGE_GRAPHENE
 	bool "graphene"
-	depends on BR2_USE_WCHAR
-	depends on BR2_TOOLCHAIN_HAS_THREADS
-	depends on BR2_USE_MMU
 	help
-	  A thin layer of types for graphic libraries
+	  A thin layer of types for graphic libraries.
 
-	  https://github.com/ebassi/graphene
+	  https://ebassi.github.io/graphene/
