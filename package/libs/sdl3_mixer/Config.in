@@ -1,0 +1,14 @@
+config BR2_PACKAGE_SDL3_MIXER
+	bool "sdl3_mixer"
+	depends on BR2_PACKAGE_SDL3
+	help
+	  SDL3_mixer is a multi-channel audio mixer library for SDL3. It
+	  plays AIFF, AU, VOC and WAVE samples, MIDI through the built-in
+	  timidity, and MP3, Ogg Vorbis and FLAC through the bundled dr_mp3,
+	  stb_vorbis and dr_flac decoders.
+
+	  The higher quality decoders are used instead when their libraries
+	  are enabled in the Buildroot configuration (flac, mpg123,
+	  libvorbis or tremor, opusfile, wavpack, fluidsynth).
+
+	  https://github.com/libsdl-org/SDL_mixer

@@ -144,10 +144,16 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/mozjs128/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/python-pygame2/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/sdl3/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/sdl3_image/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/sdl3_mixer/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/sdl3_net/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/sdl3_ttf/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/shaderc/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/tinysparql/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/totem-pl-parser/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/vte4/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/iso-codes/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/webkitgtk4/Config.in"
 
 endmenu
 
