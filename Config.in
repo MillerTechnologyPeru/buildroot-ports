@@ -73,6 +73,7 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libei/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libfreeaptx/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libgtop/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libgusb/Config.in"
 
 endmenu
 
