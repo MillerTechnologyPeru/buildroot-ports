@@ -100,4 +100,10 @@ menu "libs"
 
 endmenu
 
+menu "tools"
+
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/box64/Config.in"
+
+endmenu
+
 endmenu
