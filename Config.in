@@ -7,6 +7,7 @@ menu "apps"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/decibels/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-calculator/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-calendar/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-console/Config.in"
 
 endmenu
 
