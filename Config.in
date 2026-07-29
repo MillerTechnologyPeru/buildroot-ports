@@ -99,6 +99,7 @@ menu "games"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/ruffle/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/solarus-engine/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/steam/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/ccleste/Config.in"
 
 endmenu
 

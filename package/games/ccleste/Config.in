@@ -1,0 +1,18 @@
+config BR2_PACKAGE_CCLESTE
+	bool "ccleste"
+	select BR2_PACKAGE_SDL2
+	select BR2_PACKAGE_SDL2_MIXER
+	select BR2_PACKAGE_TREMOR
+	help
+	  ccleste: a C source port of Celeste Classic, the PICO-8
+	  original Maddy Thorson and Noel Berry wrote for Ludum Dare -
+	  the cart's Lua translated to C by hand, so the game runs
+	  natively rather than under a PICO-8 emulator. The game logic
+	  needs nothing but libc; SDL2 and SDL2_mixer provide the video
+	  and audio frontend.
+
+	  Tremor is selected because it is the only Ogg Vorbis decoder
+	  Buildroot's sdl2_mixer can be built against, and the
+	  soundtrack ships as .ogg.
+
+	  https://github.com/lemon32767/ccleste

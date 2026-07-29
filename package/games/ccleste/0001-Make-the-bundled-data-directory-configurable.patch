@@ -1,0 +1,86 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] Make the bundled data directory configurable
+
+The SDL frontend built the path to every bundled asset by prefixing a
+bare "data/", and read gamecontrollerdb.txt straight out of the working
+directory, so the game only started when launched from the directory it
+was unpacked in. That does not survive being installed to a prefix.
+
+Resolve both through GetDataPath() against a directory that is set at
+build time (DATADIR in the Makefile, CCLESTE_DATA_DIR to the compiler)
+and can be overridden at runtime with the CCLESTE_DATA_DIR environment
+variable, matching how CCLESTE_START_FULLSCREEN and
+CCLESTE_INPUT_CFG_PATH are already handled. The default is still "data",
+so building with a plain "make" behaves as before.
+
+The Makefile assigns CFLAGS and LDFLAGS unconditionally and appends the
+SDL library list and -lm to them afterwards, so neither can be set from
+the command line without losing those. Add EXTRA_CFLAGS/EXTRA_LDFLAGS
+for a cross build to pass its own flags through.
+
+Upstream: not submitted.
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+---
+ Makefile    |  9 +++++++--
+ sdl12main.c | 14 ++++++++++++--
+ 2 files changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index bec19a7..0892d0e 100644
+--- a/Makefile
++++ b/Makefile
+@@ -14,8 +14,13 @@ else
+ endif
+ endif
+ 
+-CFLAGS=-Wall -g -O2 `$(SDL_CONFIG) --cflags`
+-LDFLAGS=$(SDL_LD)
++# Directory the bundled read-only data (data/, gamecontrollerdb.txt) is read
++# from at runtime. The default keeps the historical behaviour of looking
++# beside the current working directory; packagers set it to an absolute path.
++DATADIR?=data
++
++CFLAGS=-Wall -g -O2 `$(SDL_CONFIG) --cflags` -DCCLESTE_DATA_DIR='"$(DATADIR)"' $(EXTRA_CFLAGS)
++LDFLAGS=$(SDL_LD) $(EXTRA_LDFLAGS)
+ CELESTE_CC=$(CC)
+ 
+ ifneq ($(USE_FIXEDP),)
+diff --git a/sdl12main.c b/sdl12main.c
+index db6d76d..3c2ced6 100644
+--- a/sdl12main.c
++++ b/sdl12main.c
+@@ -80,6 +80,10 @@ static void ResetPalette(void) {
+ 	memcpy(palette, base_palette, sizeof palette);
+ }
+ 
++#ifndef CCLESTE_DATA_DIR
++#define CCLESTE_DATA_DIR "data"
++#endif
++
+ static char* GetDataPath(char* path, int n, const char* fname) {
+ #ifdef _3DS
+ 	snprintf(path, n, "romfs:/%s", fname);
+@@ -89,7 +93,9 @@ static char* GetDataPath(char* path, int n, const char* fname) {
+ #else
+ 	char pathsep = '/';
+ #endif //_WIN32
+-	snprintf(path, n, "data%c%s", pathsep, fname);
++	const char* dir = getenv("CCLESTE_DATA_DIR");
++	if (!dir || !*dir) dir = CCLESTE_DATA_DIR;
++	snprintf(path, n, "%s%c%s", dir, pathsep, fname);
+ #endif //_3DS
+ 
+ 	return path;
+@@ -275,7 +281,11 @@ int main(int argc, char** argv) {
+ 	SDL_CHECK(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) == 0);
+ #if SDL_MAJOR_VERSION >= 2
+ 	SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
+-	SDL_GameControllerAddMappingsFromRW(SDL_RWFromFile("gamecontrollerdb.txt", "rb"), 1);
++	{
++		char dbpath[4096];
++		GetDataPath(dbpath, sizeof dbpath, "gamecontrollerdb.txt");
++		SDL_GameControllerAddMappingsFromRW(SDL_RWFromFile(dbpath, "rb"), 1);
++	}
+ #endif
+ 	int videoflag = SDL_SWSURFACE | SDL_HWPALETTE;
+ #ifdef _3DS
