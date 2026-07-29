@@ -48,6 +48,7 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/accountsservice/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/appstream/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord-gtk/Config.in"
 
 endmenu
 
