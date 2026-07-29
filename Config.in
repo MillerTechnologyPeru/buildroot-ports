@@ -12,6 +12,7 @@ menu "apps"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-disk-utility/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-session/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-settings-daemon/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-shell/Config.in"
 
 endmenu
 
