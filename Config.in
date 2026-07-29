@@ -39,6 +39,7 @@ menu "daemons"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/evolution-data-server/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/geoclue2/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/gnome-online-accounts/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/ibus/Config.in"
 
 endmenu
 
@@ -118,7 +119,6 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/gnome-desktop/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/gsound/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/gtksourceview5/Config.in"
-    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/ibus/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libadwaita/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libei/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libfreeaptx/Config.in"
