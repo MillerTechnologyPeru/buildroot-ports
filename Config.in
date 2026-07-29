@@ -48,6 +48,7 @@ menu "games"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-lutro/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-mgba/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-minivmac/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-mu/Config.in"
 
 endmenu
 
