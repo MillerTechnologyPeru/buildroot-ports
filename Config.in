@@ -37,6 +37,7 @@ menu "daemons"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/dconf/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/elogind/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/evolution-data-server/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/geoclue2/Config.in"
 
 endmenu
 
@@ -106,7 +107,6 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/freeimage/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/garcon/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/gcr4/Config.in"
-    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/geoclue2/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/geocode-glib/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/gexiv2/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/gjs/Config.in"
