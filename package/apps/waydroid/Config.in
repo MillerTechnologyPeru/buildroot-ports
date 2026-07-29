@@ -1,0 +1,56 @@
+config BR2_PACKAGE_WAYDROID_ARCH_SUPPORTS
+	bool
+	# Upstream builds Android images for these four only.
+	default y if BR2_i386 || BR2_x86_64 || BR2_arm || BR2_aarch64
+
+config BR2_PACKAGE_WAYDROID
+	bool "waydroid"
+	depends on BR2_PACKAGE_WAYDROID_ARCH_SUPPORTS
+	depends on BR2_PACKAGE_PYTHON3
+	depends on BR2_PACKAGE_DBUS # dbus-python
+	depends on BR2_USE_MMU # lxc, libglib2
+	depends on BR2_USE_WCHAR # libglib2
+	depends on BR2_TOOLCHAIN_HAS_THREADS # lxc, libglib2
+	depends on !BR2_STATIC_LIBS # lxc
+	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_0 # lxc: setns()
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_4_9 # python-gobject
+	depends on BR2_HOST_GCC_AT_LEAST_8 # python-gobject
+	depends on BR2_TOOLCHAIN_USES_GLIBC # python-gobject
+	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION_ARCH_SUPPORTS # python-gobject
+	select BR2_PACKAGE_LXC
+	select BR2_PACKAGE_PYTHON_GBINDER
+	select BR2_PACKAGE_DBUS_PYTHON
+	select BR2_PACKAGE_PYTHON_GOBJECT
+	select BR2_PACKAGE_PYTHON3_SSL # urllib: OTA image download
+	select BR2_PACKAGE_PYTHON3_ZLIB # zipfile/tarfile: unpacking them
+	select BR2_PACKAGE_DNSMASQ # container DHCP/DNS
+	select BR2_PACKAGE_IPTABLES # container NAT
+	select BR2_PACKAGE_KMOD
+	select BR2_PACKAGE_KMOD_TOOLS # modprobe binder_linux
+	help
+	  Waydroid runs a full Android system in an LXC container on a
+	  Wayland desktop, with the Android apps appearing as ordinary
+	  windows. Rendering goes through Android's own mesa, so it wants
+	  a GPU with a working GL driver; software rendering otherwise.
+
+	  Two halves. The privileged container manager owns
+	  id.waydro.Container on the system bus and is started by an init
+	  script (there is no systemd unit on this image). The per-user
+	  session is "waydroid session start", launched from the
+	  graphical session by the autostart entry this installs.
+
+	  Only waydroid itself is packaged. The Android system and vendor
+	  images are several hundred MB and are not included: "waydroid
+	  init" downloads them on first run, which needs working
+	  networking and a writable /var/lib/waydroid.
+
+	  https://waydro.id
+
+comment "waydroid needs a glibc toolchain w/ wchar, threads, dynamic library, headers >= 3.0, gcc >= 4.9, host gcc >= 8"
+	depends on BR2_PACKAGE_WAYDROID_ARCH_SUPPORTS
+	depends on BR2_USE_MMU
+	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION_ARCH_SUPPORTS
+	depends on !BR2_USE_WCHAR || !BR2_TOOLCHAIN_HAS_THREADS \
+		|| BR2_STATIC_LIBS || !BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_0 \
+		|| !BR2_TOOLCHAIN_GCC_AT_LEAST_4_9 || !BR2_HOST_GCC_AT_LEAST_8 \
+		|| !BR2_TOOLCHAIN_USES_GLIBC
