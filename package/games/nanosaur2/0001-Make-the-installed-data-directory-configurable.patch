@@ -1,0 +1,119 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] Make the installed data directory configurable
+
+The game looks for its Data folder next to the executable (or in the
+working directory), so an installed copy only started if the 113 MB of
+assets sat in the same directory as the binary. That does not fit a
+prefix, where the executable belongs in bindir and read-only data in
+datadir.
+
+Keep both existing attempts, and add two more after them: an override
+from the NANOSAUR2_DATA_DIR environment variable, and a path baked in at
+build time through the new GAME_DATA_DIR cache variable. Both are
+skipped when empty, so a build that sets neither behaves as before.
+
+A build that knows where the installed data lives has no use for the
+post-build copy of it next to the executable either, so skip that when
+GAME_DATA_DIR is set.
+
+Upstream: not submitted.
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+---
+ CMakeLists.txt  | 16 +++++++++++++---
+ Source/Boot.cpp | 22 ++++++++++++++++++++++
+ 2 files changed, 35 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1ffc658..04ad550 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -24,6 +24,11 @@ option(SDL_STATIC "Static link SDL" OFF)
+ 
+ option(SANITIZE "Build with asan/ubsan" OFF)
+ 
++# Absolute path to the game data of an installed copy of the game. Only
++# consulted at runtime after the paths relative to the executable, so an
++# in-tree build still picks up the Data directory it was built next to.
++set(GAME_DATA_DIR "" CACHE STRING "Path to the installed Data directory")
++
+ if(WIN32 OR APPLE)
+ 	# Don't warn
+ elseif(SANITIZE)
+@@ -132,7 +137,8 @@ add_compile_definitions(
+ )
+ 
+ target_compile_definitions(${GAME_TARGET} PRIVATE
+-	GL_SILENCE_DEPRECATION)
++	GL_SILENCE_DEPRECATION
++	GAME_DATA_DIR="${GAME_DATA_DIR}")
+ 
+ if(NOT MSVC)
+ 	target_compile_options(${GAME_TARGET} PRIVATE
+@@ -282,8 +288,12 @@ else()
+ 	set(GAME_DATA_TARGET_LOCATION "$<TARGET_FILE_DIR:${GAME_TARGET}>/Data")
+ endif()
+ 
+-add_custom_command(TARGET ${GAME_TARGET} POST_BUILD
+-	COMMAND ${CMAKE_COMMAND} -E copy_directory "${GAME_DATADIR}" "${GAME_DATA_TARGET_LOCATION}")
++# A build that bakes in a path to installed game data has no use for a copy
++# of it next to the executable.
++if(NOT GAME_DATA_DIR)
++	add_custom_command(TARGET ${GAME_TARGET} POST_BUILD
++		COMMAND ${CMAKE_COMMAND} -E copy_directory "${GAME_DATADIR}" "${GAME_DATA_TARGET_LOCATION}")
++endif()
+ 
+ if(APPLE)
+ 	set(INFO_PLIST "${GAME_DATA_TARGET_LOCATION}/../Info.plist")
+diff --git a/Source/Boot.cpp b/Source/Boot.cpp
+index 335c7bb..23dd4e7 100644
+--- a/Source/Boot.cpp
++++ b/Source/Boot.cpp
+@@ -9,6 +9,8 @@
+ #include "PommeInit.h"
+ #include "PommeFiles.h"
+ 
++#include <cstdlib>
++
+ extern "C"
+ {
+ 	#include "game.h"
+@@ -18,6 +20,10 @@ extern "C"
+ 	int gCurrentAntialiasingLevel;
+ }
+ 
++#ifndef GAME_DATA_DIR
++#define GAME_DATA_DIR ""
++#endif
++
+ static fs::path FindGameData(const char* executablePath)
+ {
+ 	fs::path dataPath;
+@@ -48,12 +54,28 @@ tryAgain:
+ 			dataPath = "Data";
+ 			break;
+ 
++		case 3:			// runtime override, for a copy of the data elsewhere
++		{
++			const char* dir = getenv("NANOSAUR2_DATA_DIR");
++			if (dir)
++				dataPath = dir;
++			break;
++		}
++
++		case 4:			// path baked in at build time, for an installed game
++			dataPath = GAME_DATA_DIR;
++			break;
++
+ 		default:
+ 			throw std::runtime_error("Couldn't find the Data folder.");
+ 	}
+ 
+ 	attemptNum++;
+ 
++	// An unset override or build-time path yields nothing to look at; move on.
++	if (dataPath.empty())
++		goto tryAgain;
++
+ 	dataPath = dataPath.lexically_normal();
+ 
+ 	// Set data spec -- Lets the game know where to find its asset files
