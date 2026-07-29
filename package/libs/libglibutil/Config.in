@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LIBGLIBUTIL
+	bool "libglibutil"
+	select BR2_PACKAGE_LIBGLIB2
+	help
+	  libglibutil: the small collection of GLib helpers (string and
+	  byte-array utilities, idle/timeout wrappers, weak pointers,
+	  logging) that the Sailfish/Mer libraries are written against.
+	  Here it is the base of the libgbinder stack.
+
+	  https://github.com/sailfishos/libglibutil
