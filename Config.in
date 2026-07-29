@@ -39,6 +39,7 @@ menu "games"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/hl2/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/super-video-golf/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/emulationstation/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/gmenu2x/Config.in"
 
 endmenu
 
