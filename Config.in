@@ -50,6 +50,7 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord-gtk/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/dconf/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/elogind/Config.in"
 
 endmenu
 
