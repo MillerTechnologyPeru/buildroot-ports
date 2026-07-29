@@ -1,0 +1,27 @@
+config BR2_PACKAGE_NANOSAUR2
+	bool "nanosaur2"
+	depends on BR2_INSTALL_LIBSTDCPP # C++20
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_10 # C++20
+	depends on BR2_TOOLCHAIN_HAS_THREADS # sdl3
+	depends on !BR2_STATIC_LIBS # sdl3
+	depends on BR2_PACKAGE_HAS_LIBGL
+	select BR2_PACKAGE_SDL3
+	select BR2_PACKAGE_SDL3_OPENGL
+	help
+	  Nanosaur II: Hatchling, Pangea Software's 2004 sequel to
+	  Nanosaur, ported to modern systems by Iliyas Jorio with
+	  permission from Pangea. You fly an armed pterodactyl through a
+	  three level adventure mode and six two-player levels.
+
+	  The game assets ship with the source, so nothing has to be
+	  supplied on the target - but they take up about 113MB.
+
+	  The renderer is fixed-function desktop OpenGL, so this needs a
+	  full GL provider; GLES alone will not do.
+
+	  https://github.com/jorio/Nanosaur2
+
+comment "nanosaur2 needs a toolchain w/ C++20, threads, dynamic library, and an OpenGL provider"
+	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_TOOLCHAIN_GCC_AT_LEAST_10 \
+		|| !BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS \
+		|| !BR2_PACKAGE_HAS_LIBGL

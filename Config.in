@@ -100,6 +100,7 @@ menu "games"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/solarus-engine/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/steam/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/ccleste/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/nanosaur2/Config.in"
 
 endmenu
 
