@@ -30,6 +30,12 @@ menu "apps"
 
 endmenu
 
+menu "daemons"
+
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/accountsservice/Config.in"
+
+endmenu
+
 menu "games"
 
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/devilutionx/Config.in"
@@ -90,7 +96,6 @@ menu "libs"
 
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libgtk4/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/graphene/Config.in"
-    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/accountsservice/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/appstream/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord-gtk/Config.in"
