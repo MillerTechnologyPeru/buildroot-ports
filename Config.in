@@ -5,6 +5,7 @@ menu "apps"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/epiphany/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/chicago95/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/decibels/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/gnome-calculator/Config.in"
 
 endmenu
 
