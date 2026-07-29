@@ -50,6 +50,7 @@ menu "games"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-minivmac/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-mu/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-pcsx-rearmed/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/libretro-scummvm/Config.in"
 
 endmenu
 
