@@ -1,0 +1,74 @@
+#!/bin/sh
+# Waydroid container manager.
+#
+# Waydroid is split in two halves. This one is the privileged manager: it
+# owns the id.waydro.Container name on the system bus, sets up binderfs,
+# loop-mounts the Android images and drives the LXC container. The other
+# half is "waydroid session start", which belongs to the user's graphical
+# session and is launched from the autostart .desktop upstream ships - not
+# from here, because it needs a Wayland display that does not exist yet at
+# this point in boot.
+#
+# There is no systemd on this image, so upstream's unit is not installed
+# (USE_SYSTEMD=0) and none of waydroid's optional systemctl probes find
+# anything - they are all guarded by which("systemctl"), so nothing needs
+# patching. The manager is a plain foreground process; it gets backgrounded
+# with a pidfile here, the same arrangement Alpine's OpenRC service uses.
+
+DAEMON=/usr/bin/waydroid
+PIDFILE=/run/waydroid-container.pid
+
+# waydroid runs out of /usr/lib/waydroid and would drop __pycache__ next to
+# its own sources. The rootfs is read-only, so do not let it try.
+PYTHONDONTWRITEBYTECODE=1
+export PYTHONDONTWRITEBYTECODE
+
+start() {
+	printf 'Starting waydroid container manager: '
+
+	# The Android images are loop-mounted, and /system/bin/vold inside
+	# the container aborts unless /sys/fs/fuse/connections exists. The
+	# kernel fixups build both in, so these only matter when a board
+	# kernel has them as modules; failure is not fatal on its own, the
+	# manager reports the real error.
+	[ -c /dev/loop-control ] || modprobe loop 2>/dev/null
+	[ -d /sys/fs/fuse/connections ] || modprobe fuse 2>/dev/null
+
+	start-stop-daemon -S -q -b -m -p "$PIDFILE" \
+		-x "$DAEMON" -- container start
+	if [ $? = 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+		return 1
+	fi
+}
+
+stop() {
+	printf 'Stopping waydroid container manager: '
+	start-stop-daemon -K -q -p "$PIDFILE"
+	# Tear the container and any running session down explicitly:
+	# killing the manager leaves the LXC container and its mounts up.
+	"$DAEMON" container stop >/dev/null 2>&1
+	"$DAEMON" session stop >/dev/null 2>&1
+	rm -f "$PIDFILE"
+	echo "OK"
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+esac
+
+exit $?

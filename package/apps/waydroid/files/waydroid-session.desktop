@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Waydroid Session
+Comment=Starts the Waydroid session
+Exec=/usr/bin/waydroid session start
+TryExec=/usr/bin/waydroid
+Terminal=false
+NoDisplay=true
+# Upstream has no autostart entry of its own: on a systemd image the
+# session half is a user unit. There is none here, so the graphical
+# session starts it, which is also how Alpine and postmarketOS do it.
+# Both keys below are inert without systemd and are kept so that this
+# does not double-start if a systemd user unit is ever added.
+X-GNOME-HiddenUnderSystemd=true
+X-systemd-skip=true

@@ -1,0 +1,13 @@
+config BR2_PACKAGE_LIBGBINDER
+	bool "libgbinder"
+	select BR2_PACKAGE_LIBGLIB2
+	select BR2_PACKAGE_LIBGLIBUTIL
+	help
+	  libgbinder: a GLib-style client for Android's binder IPC. It
+	  talks to /dev/binder (or the nodes allocated out of binderfs)
+	  and is how a Linux userspace process reaches the services
+	  inside an Android container.
+
+	  Required by waydroid, through its Python bindings.
+
+	  https://github.com/mer-hybris/libgbinder
