@@ -42,6 +42,7 @@ menu "daemons"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/ibus/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/localsearch/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/udisks2/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/xfconf/Config.in"
 
 endmenu
 
@@ -146,7 +147,6 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/tinysparql/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/totem-pl-parser/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/vte4/Config.in"
-    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/xfconf/Config.in"
 
 endmenu
 
