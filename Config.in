@@ -34,6 +34,7 @@ menu "daemons"
 
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/accountsservice/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/colord/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/dconf/Config.in"
 
 endmenu
 
@@ -99,7 +100,6 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/graphene/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/appstream/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/colord-gtk/Config.in"
-    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/dconf/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/elogind/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/evolution-data-server/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/exo/Config.in"
