@@ -40,6 +40,7 @@ menu "daemons"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/geoclue2/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/gnome-online-accounts/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/ibus/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/daemons/localsearch/Config.in"
 
 endmenu
 
@@ -136,7 +137,6 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libwnck/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libxfce4ui/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/libxfce4util/Config.in"
-    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/localsearch/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/luajit-embed/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/mozjs128/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/python-pygame2/Config.in"
