@@ -93,6 +93,7 @@ menu "libs"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/sdl3/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/shaderc/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/tinysparql/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/libs/totem-pl-parser/Config.in"
 
 endmenu
 
