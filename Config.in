@@ -103,6 +103,7 @@ endmenu
 menu "tools"
 
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/box64/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/box86/Config.in"
 
 endmenu
 
