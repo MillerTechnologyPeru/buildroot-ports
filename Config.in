@@ -24,6 +24,7 @@ menu "apps"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/xdg-desktop-portal-gtk/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/xfce4-panel/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/xfce4-session/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/apps/xfce4-settings/Config.in"
 
 endmenu
 
