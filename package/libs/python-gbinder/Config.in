@@ -1,0 +1,13 @@
+config BR2_PACKAGE_PYTHON_GBINDER
+	bool "python-gbinder"
+	# Buildroot's own python modules sit inside an "if
+	# BR2_PACKAGE_PYTHON3" block, so they carry no dependency of
+	# their own. This one lives in the libs menu, so it needs it.
+	depends on BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_LIBGBINDER
+	help
+	  gbinder-python: Cython bindings for libgbinder, so Python can
+	  call into Android's binder IPC. This is the interface waydroid
+	  drives its container's services through.
+
+	  https://github.com/erfanoabdi/gbinder-python
