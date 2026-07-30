@@ -1,3 +1,6 @@
+# Bundles built by util/make-app-bundle.sh
+/output/
+
 # http://www.gnu.org/software/automake
 
 Makefile.in
