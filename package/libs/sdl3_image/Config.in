@@ -3,11 +3,11 @@ config BR2_PACKAGE_SDL3_IMAGE
 	depends on BR2_PACKAGE_SDL3
 	help
 	  SDL3_image is an image file loading library for SDL3. It loads
-	  images as SDL surfaces and supports BMP, GIF, JPEG, LBM, PCX,
-	  PNG, PNM, QOI, SVG, TGA, TIFF, WEBP, XCF, XPM and XV.
+	  images as SDL surfaces and supports AVIF, BMP, GIF, JPEG, LBM,
+	  PCX, PNG, PNM, QOI, SVG, TGA, TIFF, WEBP, XCF, XPM and XV.
 
 	  Which of the formats that need a helper library are built
-	  depends on the image libraries enabled in the Buildroot
-	  configuration (jpeg, libpng, tiff, webp, libjxl).
+	  depends on the image libraries enabled in the configuration
+	  (jpeg, libpng, tiff, webp, libjxl, libavif).
 
 	  https://github.com/libsdl-org/SDL_image

@@ -18,14 +18,20 @@ SDL3_TTF_INSTALL_STAGING = YES
 SDL3_TTF_DEPENDENCIES = sdl3 freetype host-pkgconf
 
 # STRICT makes the build fail when a dependency we asked for cannot be
-# found, instead of silently dropping the feature. plutosvg, which adds
-# colour emoji support, is not packaged by Buildroot.
+# found, instead of silently dropping the feature.
 SDL3_TTF_CONF_OPTS = \
 	-DSDLTTF_VENDORED=OFF \
 	-DSDLTTF_STRICT=ON \
 	-DSDLTTF_SAMPLES=OFF \
-	-DSDLTTF_INSTALL_MAN=OFF \
-	-DSDLTTF_PLUTOSVG=OFF
+	-DSDLTTF_INSTALL_MAN=OFF
+
+# plutosvg is what renders OpenType-SVG glyphs, i.e. colour emoji.
+ifeq ($(BR2_PACKAGE_PLUTOSVG),y)
+SDL3_TTF_CONF_OPTS += -DSDLTTF_PLUTOSVG=ON
+SDL3_TTF_DEPENDENCIES += plutosvg
+else
+SDL3_TTF_CONF_OPTS += -DSDLTTF_PLUTOSVG=OFF
+endif
 
 ifeq ($(BR2_PACKAGE_HARFBUZZ),y)
 SDL3_TTF_CONF_OPTS += -DSDLTTF_HARFBUZZ=ON

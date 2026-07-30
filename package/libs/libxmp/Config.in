@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LIBXMP
+	bool "libxmp"
+	help
+	  libxmp is a module rendering library, playing MOD, S3M, XM, IT
+	  and around forty other module formats.
+
+	  https://github.com/libxmp/libxmp

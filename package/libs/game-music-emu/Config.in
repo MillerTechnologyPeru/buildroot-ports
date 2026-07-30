@@ -1,0 +1,13 @@
+config BR2_PACKAGE_GAME_MUSIC_EMU
+	bool "game-music-emu"
+	depends on BR2_INSTALL_LIBSTDCPP
+	select BR2_PACKAGE_ZLIB
+	help
+	  game-music-emu is a collection of video game music file
+	  emulators, playing AY, GBS, GYM, HES, KSS, NSF, NSFE, SAP, SPC
+	  and VGM/VGZ files.
+
+	  https://github.com/libgme/game-music-emu
+
+comment "game-music-emu needs a toolchain w/ C++"
+	depends on !BR2_INSTALL_LIBSTDCPP
