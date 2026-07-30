@@ -8,7 +8,8 @@ config BR2_PACKAGE_SDL3_MIXER
 	  stb_vorbis and dr_flac decoders.
 
 	  The higher quality decoders are used instead when their libraries
-	  are enabled in the Buildroot configuration (flac, mpg123,
-	  libvorbis or tremor, opusfile, wavpack, fluidsynth).
+	  are enabled in the configuration (flac, mpg123, libvorbis or
+	  tremor, opusfile, wavpack, fluidsynth), and module and console
+	  chiptune playback is added by libxmp and game-music-emu.
 
 	  https://github.com/libsdl-org/SDL_mixer

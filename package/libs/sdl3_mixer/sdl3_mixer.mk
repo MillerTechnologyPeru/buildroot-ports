@@ -22,17 +22,31 @@ SDL3_MIXER_DEPENDENCIES = sdl3 host-pkgconf
 # STRICT makes the build fail when a decoder we asked for cannot find its
 # library, instead of silently dropping it. DEPS_SHARED=OFF links the
 # decoder libraries directly rather than dlopen()ing them at runtime.
-# GME needs game-music-emu and MOD needs libxmp; neither is packaged by
-# Buildroot.
 SDL3_MIXER_CONF_OPTS = \
 	-DSDLMIXER_VENDORED=OFF \
 	-DSDLMIXER_DEPS_SHARED=OFF \
 	-DSDLMIXER_STRICT=ON \
 	-DSDLMIXER_TESTS=OFF \
 	-DSDLMIXER_EXAMPLES=OFF \
-	-DSDLMIXER_INSTALL_MAN=OFF \
-	-DSDLMIXER_GME=OFF \
-	-DSDLMIXER_MOD=OFF
+	-DSDLMIXER_INSTALL_MAN=OFF
+
+ifeq ($(BR2_PACKAGE_GAME_MUSIC_EMU),y)
+SDL3_MIXER_CONF_OPTS += -DSDLMIXER_GME=ON
+SDL3_MIXER_DEPENDENCIES += game-music-emu
+else
+SDL3_MIXER_CONF_OPTS += -DSDLMIXER_GME=OFF
+endif
+
+# MOD playback goes through libxmp; libxmp-lite is not packaged.
+ifeq ($(BR2_PACKAGE_LIBXMP),y)
+SDL3_MIXER_CONF_OPTS += \
+	-DSDLMIXER_MOD=ON \
+	-DSDLMIXER_MOD_XMP=ON \
+	-DSDLMIXER_MOD_XMP_LITE=OFF
+SDL3_MIXER_DEPENDENCIES += libxmp
+else
+SDL3_MIXER_CONF_OPTS += -DSDLMIXER_MOD=OFF
+endif
 
 ifeq ($(BR2_PACKAGE_FLAC),y)
 SDL3_MIXER_CONF_OPTS += -DSDLMIXER_FLAC_LIBFLAC=ON

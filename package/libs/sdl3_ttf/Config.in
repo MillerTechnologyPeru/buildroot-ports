@@ -4,6 +4,7 @@ config BR2_PACKAGE_SDL3_TTF
 	select BR2_PACKAGE_FREETYPE
 	help
 	  SDL3_ttf is a TrueType font rendering library for SDL3. Text
-	  shaping through harfbuzz is used when harfbuzz is enabled.
+	  shaping through harfbuzz is used when harfbuzz is enabled, and
+	  colour emoji are rendered when plutosvg is enabled.
 
 	  https://github.com/libsdl-org/SDL_ttf

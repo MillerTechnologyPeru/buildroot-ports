@@ -22,15 +22,24 @@ SDL3_IMAGE_DEPENDENCIES = sdl3 host-pkgconf
 # fail when a format we asked for cannot find its library, instead of
 # silently dropping it. DEPS_SHARED=OFF links the image libraries
 # directly rather than dlopen()ing them at runtime.
-# AVIF is disabled because Buildroot has no libavif.
 SDL3_IMAGE_CONF_OPTS = \
 	-DSDLIMAGE_VENDORED=OFF \
 	-DSDLIMAGE_DEPS_SHARED=OFF \
 	-DSDLIMAGE_STRICT=ON \
 	-DSDLIMAGE_SAMPLES=OFF \
 	-DSDLIMAGE_TESTS=OFF \
-	-DSDLIMAGE_INSTALL_MAN=OFF \
-	-DSDLIMAGE_AVIF=OFF
+	-DSDLIMAGE_INSTALL_MAN=OFF
+
+# libavif decodes through dav1d and has no encoder to offer, so AVIF
+# saving stays off.
+ifeq ($(BR2_PACKAGE_LIBAVIF),y)
+SDL3_IMAGE_CONF_OPTS += \
+	-DSDLIMAGE_AVIF=ON \
+	-DSDLIMAGE_AVIF_SAVE=OFF
+SDL3_IMAGE_DEPENDENCIES += libavif
+else
+SDL3_IMAGE_CONF_OPTS += -DSDLIMAGE_AVIF=OFF
+endif
 
 # The bundled stb_image decoder handles JPEG with no external library, so
 # it is only needed when libjpeg is unavailable.
