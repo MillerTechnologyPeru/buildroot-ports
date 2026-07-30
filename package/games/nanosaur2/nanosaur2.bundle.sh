@@ -33,56 +33,18 @@ NANOSAUR2_REPO="https://github.com/jorio/Nanosaur2.git"
 NANOSAUR2_COMMIT="56cac5bc849a8eb90b3fa84e3826b2cadc1d4855"
 
 app_fetch() {
-	src="$1"
-	# A pinned commit cannot be cloned with --branch, and the submodules are
-	# not optional, so fetch the one commit and its submodules by hand.
-	if [ -d "$src/.git" ]; then
-		echo "  sources: $src (cached)"
-	else
-		rm -rf "$src"
-		mkdir -p "$src"
-		git -C "$src" init -q
-		git -C "$src" remote add origin "$NANOSAUR2_REPO"
-		git -C "$src" fetch -q --depth 1 origin "$NANOSAUR2_COMMIT"
-		git -C "$src" checkout -q FETCH_HEAD
-		git -C "$src" submodule update -q --init --depth 1 --recursive
-	fi
-	NANOSAUR2_SRC="$src"
+	# Pomme (the Mac Toolbox reimplementation) is a submodule, and the game data
+	# only exists in the git tree.
+	fetch_git "$1" "$NANOSAUR2_REPO" "$NANOSAUR2_COMMIT" submodules
+	NANOSAUR2_SRC="$1"
 }
 
 app_build() {
-	arch="$1"; triple="$2"; sysroot="$3"; out="$4"
-	build="$(dirname "$out")/cmake"
-
-	# pkg-config has to be told to look in the sysroot and nowhere else, or a
-	# host .pc file answers for the target.
-	PKG_CONFIG_SYSROOT_DIR="$sysroot" \
-	PKG_CONFIG_LIBDIR="$sysroot/usr/lib/pkgconfig:$sysroot/usr/share/pkgconfig" \
-	cmake -S "$NANOSAUR2_SRC" -B "$build" \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_SYSTEM_NAME=Linux \
-		-DCMAKE_SYSTEM_PROCESSOR="${triple%%-*}" \
-		-DCMAKE_SYSROOT="$sysroot" \
-		-DCMAKE_C_COMPILER="$CLANG" \
-		-DCMAKE_CXX_COMPILER="$CLANGXX" \
-		-DCMAKE_C_COMPILER_TARGET="$triple" \
-		-DCMAKE_CXX_COMPILER_TARGET="$triple" \
-		-DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
-		-DCMAKE_FIND_ROOT_PATH="$sysroot" \
-		-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-		-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-		-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-		-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
-		-DBUILD_SDL_FROM_SOURCE=OFF \
-		>/dev/null
-	cmake --build "$build" --parallel
-
+	build="$(dirname "$4")/cmake"
+	cmake_cross "$2" "$3" "$NANOSAUR2_SRC" "$build" -DBUILD_SDL_FROM_SOURCE=OFF
 	# The project has no install rules - it leaves a runnable game in the build
 	# directory - so take the executable from wherever it landed.
-	bin="$build/$APP_EXECUTABLE"
-	[ -f "$bin" ] || bin="$(find "$build" -maxdepth 2 -type f -name "$APP_EXECUTABLE" | head -1)"
-	[ -n "$bin" ] || { echo "error: no $APP_EXECUTABLE in $build" >&2; return 1; }
-	cp "$bin" "$out"
+	take_binary "$build" "$APP_EXECUTABLE" "$4"
 }
 
 app_stage() {

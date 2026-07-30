@@ -255,6 +255,65 @@ build_arch_buildroot() {
 }
 
 # ---- clang mode ----------------------------------------------------------
+# Helpers recipes call from app_fetch/app_build, so a recipe stays a handful of
+# variables and the couple of lines that are actually specific to the port.
+
+# fetch_git <dir> <repo> <ref> [submodules]
+# Shallow checkout of a tag or a commit (both work: GitHub serves an arbitrary
+# SHA to fetch, which --branch cannot take). Cached across runs.
+fetch_git() {
+	_d="$1"; _r="$2"; _ref="$3"
+	if [ -d "$_d/.git" ]; then
+		echo "  sources: $_d (cached)"
+		return 0
+	fi
+	rm -rf "$_d"; mkdir -p "$_d"
+	git -C "$_d" init -q
+	git -C "$_d" remote add origin "$_r"
+	git -C "$_d" fetch -q --depth 1 origin "$_ref"
+	git -C "$_d" checkout -q FETCH_HEAD
+	if [ "${4:-}" = submodules ]; then
+		git -C "$_d" submodule update -q --init --depth 1 --recursive
+	fi
+	return 0
+}
+
+# cmake_cross <triple> <sysroot> <srcdir> <builddir> [extra -D...]
+# Configure and build a CMake project against an SDK sysroot: clang driven with
+# --target, lld linking, and every search confined to the sysroot so a host
+# header or .pc file can never answer for the target.
+cmake_cross() {
+	_t="$1"; _s="$2"; _src="$3"; _b="$4"; shift 4
+	PKG_CONFIG_SYSROOT_DIR="$_s" \
+	PKG_CONFIG_LIBDIR="$_s/usr/lib/pkgconfig:$_s/usr/share/pkgconfig" \
+	cmake -S "$_src" -B "$_b" \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_SYSTEM_NAME=Linux \
+		-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+		-DCMAKE_SYSTEM_PROCESSOR="${_t%%-*}" \
+		-DCMAKE_SYSROOT="$_s" \
+		-DCMAKE_C_COMPILER="$CLANG" \
+		-DCMAKE_CXX_COMPILER="$CLANGXX" \
+		-DCMAKE_C_COMPILER_TARGET="$_t" \
+		-DCMAKE_CXX_COMPILER_TARGET="$_t" \
+		-DCMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
+		-DCMAKE_FIND_ROOT_PATH="$_s" \
+		-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+		-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+		-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+		-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+		"$@" >/dev/null
+	cmake --build "$_b" --parallel
+}
+
+# take_binary <builddir> <name> <out> - the built executable, wherever the
+# project left it (few of these games install anything).
+take_binary() {
+	_bin="$1/$2"
+	[ -f "$_bin" ] || _bin="$(find "$1" -maxdepth 3 -type f -name "$2" | head -1)"
+	[ -n "$_bin" ] && [ -f "$_bin" ] || { echo "error: no $2 under $1" >&2; return 1; }
+	cp "$_bin" "$3"
+}
 
 WORK="$OUT/.build/$APP_ID"
 BUNDLE="$OUT/$APP_ID.app"
