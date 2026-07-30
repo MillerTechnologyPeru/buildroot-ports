@@ -84,6 +84,10 @@ if [ -z "$CLANG" ] && command -v swiftc >/dev/null; then
 	[ -x "$c" ] && CLANG="$c"
 fi
 [ -n "$CLANG" ] || { echo "error: clang not found (install a Swift toolchain or LLVM)" >&2; exit 1; }
+# C++ recipes (a CMake game, say) need the matching driver, not a clang++ that
+# happens to be first on PATH from some other toolchain.
+CLANGXX="${CLANG}++"
+[ -x "$CLANGXX" ] || CLANGXX="$(dirname "$CLANG")/clang++"
 
 # Strip with LLVM's tools: the host may be macOS, whose strip cannot touch an
 # ELF file. Silently leaving binaries unstripped would triple the bundle, so
