@@ -10,7 +10,23 @@
 # and execs. Bundles are user content - they live on the data partition and
 # survive A/B updates, so a port needs no image rebuild.
 #
-# No cross-toolchain is built. One clang cross-compiles every target, driven
+# Two ways to build a port, chosen by the recipe's APP_MODE:
+#
+#   clang     (default) one clang cross-compiles the port against the Swift SDK
+#             sysroots. Fast, runs on macOS, and needs every library the port
+#             links to be in the sysroot already. Right for an SDL game.
+#
+#   buildroot the port is a Buildroot package (APP_PACKAGE); Buildroot builds it
+#             and its dependencies per architecture, and the bundle picks up the
+#             packages the image's frontend-independent baseline does NOT ship -
+#             so a GTK app can carry the GNOME stack an EmulationStation image
+#             lacks. Needs Linux and a Buildroot tree per architecture, and the
+#             first build of one is measured in hours.
+#
+# The clang path is described below; for the buildroot path see the section
+# further down.
+#
+# No cross-toolchain is built in clang mode. One clang cross-compiles every target, driven
 # with --target/--sysroot/-fuse-ld=lld against the Swift Linux SDK sysroots,
 # which carry the folded cross-gcc (crt objects, libgcc) clang discovers from
 # the sysroot alone - the same mechanism swift-linux's
@@ -38,6 +54,12 @@
 #   --sdk      Swift SDK bundle name in ~/.swiftpm/swift-sdks, or a path to an
 #              .artifactbundle (default: swift-linux, the combined all-arch one).
 #   --out      output directory (default: output/apps).
+#   --swift-linux DIR  the swift-linux checkout whose fragments define the
+#              baseline (buildroot mode only; default: this tree's parent).
+#   --buildroot DIR    Buildroot checkout (default: <swift-linux>/buildroot).
+#   --br-output DIR    where the per-arch Buildroot trees go (default:
+#              <swift-linux>/output). Two per architecture: bundle-<arch>
+#              builds the package, bundle-<arch>-baseline is only configured.
 #   --pack     also pack a plain squashfs image next to the bundle. Offset 0,
 #              not the spec's self-executing polyglot: es-squashfs mounts with
 #              "mount -o loop,ro" and no offset, so an offset image would not
@@ -47,12 +69,16 @@ set -eu
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 RECIPE=""; ARCHES=""; SDK="swift-linux"; OUT=""; PACK=0
+SWIFT_LINUX=""; BUILDROOT_DIR=""; BR_OUTPUT=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 		--arch) ARCHES="$2"; shift 2 ;;
 		--sdk) SDK="$2"; shift 2 ;;
 		--out) OUT="$2"; shift 2 ;;
 		--pack) PACK=1; shift ;;
+		--swift-linux) SWIFT_LINUX="$2"; shift 2 ;;
+		--buildroot) BUILDROOT_DIR="$2"; shift 2 ;;
+		--br-output) BR_OUTPUT="$2"; shift 2 ;;
 		-h|--help) grep '^#' "$0" | sed 's/^# \?//'; exit 0 ;;
 		-*) echo "unknown arg: $1" >&2; exit 1 ;;
 		*) [ -z "$RECIPE" ] || { echo "error: one recipe at a time" >&2; exit 1; }
@@ -137,13 +163,98 @@ if [ -z "$RECIPE_FILE" ] || [ ! -f "$RECIPE_FILE" ]; then
 		sed 's#.*/##; s#\.bundle\.sh$##' | sort | sed 's/^/  /' >&2
 	exit 1
 fi
-APP_CAPABILITIES=""; APP_RUN_ENV=""
+APP_CAPABILITIES=""; APP_RUN_ENV=""; APP_MODE="clang"; APP_PACKAGE=""
 # shellcheck source=/dev/null
 . "$RECIPE_FILE"
 for v in APP_ID APP_NAME APP_DESCRIPTION APP_EXECUTABLE APP_VERSION APP_BUILD; do
 	eval "[ -n \"\${$v:-}\" ]" || { echo "error: $RECIPE_FILE sets no $v" >&2; exit 1; }
 done
-command -v app_build >/dev/null || { echo "error: $RECIPE_FILE defines no app_build" >&2; exit 1; }
+case "$APP_MODE" in
+	clang)
+		command -v app_build >/dev/null ||
+			{ echo "error: $RECIPE_FILE defines no app_build" >&2; exit 1; } ;;
+	buildroot)
+		[ -n "$APP_PACKAGE" ] ||
+			{ echo "error: $RECIPE_FILE sets APP_MODE=buildroot but no APP_PACKAGE" >&2; exit 1; }
+		# Defaults derived from where this script sits: ports is a submodule of
+		# swift-linux, whose generate-config.sh defines the baseline.
+		SWIFT_LINUX="${SWIFT_LINUX:-$(cd "$REPO_DIR/.." && pwd)}"
+		BUILDROOT_DIR="${BUILDROOT_DIR:-$SWIFT_LINUX/buildroot}"
+		BR_OUTPUT="${BR_OUTPUT:-$SWIFT_LINUX/output}"
+		for f in "$SWIFT_LINUX/generate-config.sh" "$BUILDROOT_DIR/Makefile"; do
+			[ -f "$f" ] || { echo "error: buildroot mode needs $f" >&2; exit 1; }
+		done
+		# Buildroot does not build on macOS; say so here rather than 40 minutes in.
+		[ "$(uname -s)" = Linux ] ||
+			{ echo "error: buildroot mode needs Linux (use the CONTAINER=1 build environment)" >&2; exit 1; } ;;
+	*) echo "error: unknown APP_MODE '$APP_MODE' (clang or buildroot)" >&2; exit 1 ;;
+esac
+
+# ---- buildroot mode ------------------------------------------------------
+# Build the package for one architecture in a tree configured as "the image
+# without its frontend, plus this package", then work out which packages that
+# added over the frontend-independent baseline. Those - the app and everything
+# it dragged in that no image is guaranteed to ship - are what the bundle
+# carries. Everything the baseline already has is left out, per the format's
+# rule against bundling a soname the rootfs provides.
+#
+# The two package sets come from "make show-info" on each configured tree, not
+# from the defconfigs: Kconfig selects pull in packages nobody named, and
+# show-info reports real package names (sdl2_mixer keeps its underscore, which
+# a symbol-to-name guess would get wrong).
+br_package_set() {
+	make -C "$BUILDROOT_DIR" O="$1" show-info 2>/dev/null | jq -r 'keys[]' | LC_ALL=C sort
+}
+
+build_arch_buildroot() {
+	arch="$1"
+	wa="$WORK/$arch"; mkdir -p "$wa"
+	O="$BR_OUTPUT/bundle-$arch"
+	OB="$BR_OUTPUT/bundle-$arch-baseline"
+	EXT="$SWIFT_LINUX/swift:$REPO_DIR:$SWIFT_LINUX/external"
+
+	"$SWIFT_LINUX/generate-config.sh" --arch "$arch" --profile image \
+		--frontend none -o "$wa/baseline.defconfig" >/dev/null
+	sym="BR2_PACKAGE_$(printf '%s' "$APP_PACKAGE" | tr 'a-z-' 'A-Z_')"
+	cp "$wa/baseline.defconfig" "$wa/app.defconfig"
+	printf '%s=y\n' "$sym" >> "$wa/app.defconfig"
+
+	# The baseline tree is configured but never built - only its package list
+	# is wanted.
+	echo "    configuring baseline"
+	make -C "$BUILDROOT_DIR" O="$OB" BR2_EXTERNAL="$EXT" \
+		BR2_DEFCONFIG="$wa/baseline.defconfig" defconfig >/dev/null
+	echo "    configuring $APP_PACKAGE"
+	make -C "$BUILDROOT_DIR" O="$O" BR2_EXTERNAL="$EXT" \
+		BR2_DEFCONFIG="$wa/app.defconfig" defconfig >/dev/null
+	grep -q "^$sym=y" "$O/.config" ||
+		{ echo "error: $sym is not enabled in $O/.config - unmet Config.in dependency?" >&2; return 1; }
+
+	echo "    building (this is a Buildroot build; expect it to be long)"
+	make -C "$BUILDROOT_DIR" O="$O" BR2_EXTERNAL="$EXT"
+
+	br_package_set "$OB" > "$wa/baseline.pkgs"
+	br_package_set "$O"  > "$wa/app.pkgs"
+	LC_ALL=C comm -13 "$wa/baseline.pkgs" "$wa/app.pkgs" > "$wa/bundle.pkgs"
+	echo "    $(wc -l < "$wa/bundle.pkgs" | tr -d ' ') packages beyond the baseline"
+
+	list="$O/build/packages-file-list.txt"
+	[ -f "$list" ] || { echo "error: no $list (did the build finish?)" >&2; return 1; }
+	# Lines are "<package>,<./path>"; keep the paths belonging to our packages.
+	LC_ALL=C awk -F, 'NR==FNR { want[$0]; next } ($1 in want) { sub(/^[^,]*,/, ""); print }' \
+		"$wa/bundle.pkgs" "$list" | LC_ALL=C sort -u > "$wa/files"
+	[ -s "$wa/files" ] || { echo "error: no files attributed to $APP_PACKAGE" >&2; return 1; }
+	echo "    $(wc -l < "$wa/files" | tr -d ' ') files staged"
+
+	# Copy at their original prefix-relative paths: schemas, typelibs and
+	# pixbuf loaders all have a prefix compiled in, and run.sh points the
+	# matching environment variables at this tree.
+	pfx="$BUNDLE/prefix/$arch"
+	mkdir -p "$pfx"
+	tar -C "$O/target" -cf - -T "$wa/files" 2>/dev/null | tar -C "$pfx" -xf -
+}
+
+# ---- clang mode ----------------------------------------------------------
 
 WORK="$OUT/.build/$APP_ID"
 BUNDLE="$OUT/$APP_ID.app"
@@ -160,15 +271,31 @@ fi
 BUILT=""
 for arch in $ARCHES; do
 	triple="$(triple_for_arch "$arch")" || { echo "  skip $arch: unknown architecture" >&2; continue; }
-	sysroot="$(sysroot_for_triple "$triple")" || { echo "  skip $arch: $SDK has no $triple" >&2; continue; }
-	echo "--> $arch ($triple)"
-	binary="$WORK/$arch/$APP_EXECUTABLE"
-	mkdir -p "$WORK/$arch"
-	app_build "$arch" "$triple" "$sysroot" "$binary"
-	[ -f "$binary" ] || { echo "error: $arch build produced no $binary" >&2; exit 1; }
-	install -d "$BUNDLE/bin/$arch"
-	install -m 755 "$binary" "$BUNDLE/bin/$arch/$APP_EXECUTABLE"
-	strip_elf "$BUNDLE/bin/$arch/$APP_EXECUTABLE"
+	if [ "$APP_MODE" = buildroot ]; then
+		echo "--> $arch (buildroot)"
+		build_arch_buildroot "$arch" || exit 1
+		# The format wants the executable at bin/<arch>/ and libraries at
+		# lib/<arch>/. Both are symlinks into the prefix tree rather than second
+		# copies: the payload can be hundreds of MB, and a symlink costs nothing
+		# in a squashfs.
+		pfx="$BUNDLE/prefix/$arch"
+		exe="$(cd "$pfx" && find . -type f -perm -u+x -name "$APP_EXECUTABLE" | head -1)"
+		[ -n "$exe" ] || { echo "error: no $APP_EXECUTABLE in the staged files" >&2; exit 1; }
+		install -d "$BUNDLE/bin/$arch"
+		ln -sfn "../../prefix/$arch/${exe#./}" "$BUNDLE/bin/$arch/$APP_EXECUTABLE"
+		install -d "$BUNDLE/lib"
+		[ -d "$pfx/usr/lib" ] && ln -sfn "../prefix/$arch/usr/lib" "$BUNDLE/lib/$arch"
+	else
+		sysroot="$(sysroot_for_triple "$triple")" || { echo "  skip $arch: $SDK has no $triple" >&2; continue; }
+		echo "--> $arch ($triple)"
+		binary="$WORK/$arch/$APP_EXECUTABLE"
+		mkdir -p "$WORK/$arch"
+		app_build "$arch" "$triple" "$sysroot" "$binary"
+		[ -f "$binary" ] || { echo "error: $arch build produced no $binary" >&2; exit 1; }
+		install -d "$BUNDLE/bin/$arch"
+		install -m 755 "$binary" "$BUNDLE/bin/$arch/$APP_EXECUTABLE"
+		strip_elf "$BUNDLE/bin/$arch/$APP_EXECUTABLE"
+	fi
 	BUILT="$BUILT $arch"
 done
 [ -n "$BUILT" ] || { echo "error: nothing built" >&2; exit 1; }
@@ -227,6 +354,26 @@ run() {
 	bin="\$HERE/bin/\$arch/$APP_EXECUTABLE"
 	[ -x "\$bin" ] || return 1
 	[ -d "\$HERE/lib/\$arch" ] && export LD_LIBRARY_PATH="\$HERE/lib/\$arch\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}"
+	# A bundle carrying libraries the image does not ship keeps them at their
+	# original prefix, because schemas, typelibs and loader caches have that
+	# prefix compiled in. Point each consumer at the tree, but only when the
+	# bundle actually has one - a bundle that only needs the image's own
+	# libraries has no prefix/ at all and none of this applies.
+	P="\$HERE/prefix/\$arch"
+	if [ -d "\$P" ]; then
+		[ -d "\$P/usr/share" ] &&
+			export XDG_DATA_DIRS="\$P/usr/share\${XDG_DATA_DIRS:+:\$XDG_DATA_DIRS}:/usr/share"
+		[ -d "\$P/usr/share/glib-2.0/schemas" ] &&
+			export GSETTINGS_SCHEMA_DIR="\$P/usr/share/glib-2.0/schemas"
+		[ -d "\$P/usr/lib/girepository-1.0" ] &&
+			export GI_TYPELIB_PATH="\$P/usr/lib/girepository-1.0\${GI_TYPELIB_PATH:+:\$GI_TYPELIB_PATH}"
+		[ -d "\$P/usr/lib/gio/modules" ] &&
+			export GIO_MODULE_DIR="\$P/usr/lib/gio/modules"
+		for c in "\$P"/usr/lib/gdk-pixbuf-2.0/*/loaders.cache; do
+			[ -f "\$c" ] && export GDK_PIXBUF_MODULE_FILE="\$c"
+		done
+		[ -d "\$P/usr/lib/locale" ] && export LOCPATH="\$P/usr/lib/locale"
+	fi
 	exec "\$@" "\$bin"
 }
 
