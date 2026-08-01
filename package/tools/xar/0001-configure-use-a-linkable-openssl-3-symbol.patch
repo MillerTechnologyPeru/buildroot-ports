@@ -1,0 +1,31 @@
+Fix the libcrypto probe against OpenSSL 1.1+/3.x
+
+configure.ac links a trivial program against OpenSSL_add_all_ciphers to
+detect libcrypto. OpenSSL 1.1.0 turned that function into a no-op macro
+with no exported symbol, so the probe fails to link against any OpenSSL
+this new and configure hard-errors:
+
+  checking for OpenSSL_add_all_ciphers in -lcrypto... no
+  configure: error: Cannot build without libcrypto (OpenSSL)
+
+xar's own source never calls OpenSSL_add_all_ciphers - the explicit
+init it existed for is unnecessary since OpenSSL 1.1 initializes itself -
+so the probe only needs a symbol that is still actually exported.
+EVP_MD_CTX_new has been present, unchanged, since OpenSSL 1.1.0.
+
+Upstream is inactive (no commits since 2014), so this could not be taken
+from a newer release.
+
+diff --git a/xar/configure.ac b/xar/configure.ac
+index 812b5ff..954f3e0 100644
+--- a/xar/configure.ac
++++ b/xar/configure.ac
+@@ -329,7 +329,7 @@ dnl Configure libcrypto (part of OpenSSL).
+ dnl 
+ have_libcrypto="1"
+ AC_CHECK_HEADERS([openssl/evp.h], , [have_libcrypto="0"])
+-AC_CHECK_LIB([crypto], [OpenSSL_add_all_ciphers], , [have_libcrypto="0"])
++AC_CHECK_LIB([crypto], [EVP_MD_CTX_new], , [have_libcrypto="0"])
+ if test "x${have_libcrypto}" = "x0" ; then
+   AC_MSG_ERROR([Cannot build without libcrypto (OpenSSL)])
+ fi
