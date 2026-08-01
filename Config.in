@@ -171,6 +171,7 @@ menu "tools"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/flatpak/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/grim/Config.in"
     source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/wine-prebuilt/Config.in"
+    source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/tools/xar/Config.in"
 
 endmenu
 

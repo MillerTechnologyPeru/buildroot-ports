@@ -1,0 +1,12 @@
+config BR2_PACKAGE_XAR
+	bool "xar"
+	depends on !BR2_STATIC_LIBS # builds and links a shared libxar
+	select BR2_PACKAGE_LIBXML2
+	select BR2_PACKAGE_OPENSSL
+	select BR2_PACKAGE_ZLIB
+	help
+	  xar (eXtensible ARchiver) is a command-line archiving tool and
+	  library built around an XML table of contents, the format macOS
+	  installer packages (.pkg) and update packages use.
+
+	  https://github.com/mackyle/xar
