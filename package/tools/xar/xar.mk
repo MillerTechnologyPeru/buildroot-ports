@@ -27,8 +27,17 @@ XAR_INSTALL_STAGING = YES
 #
 # Running plain autoconf, as upstream does, regenerates configure from the
 # (patched) configure.ac without ever invoking autoheader.
+#
+# $(@D) is $(XAR_DIR) here, not $(XAR_SRCDIR) - a pre-configure hook is
+# just another recipe line in the same make target as the rest of the step,
+# and @D is tied to that target's own path ($(XAR_DIR)/.stamp_configured),
+# not to XAR_SUBDIR. cd-ing to $(@D) ran autoconf at the top of the
+# extracted tree, which has no configure.ac of its own (only xar/ does):
+#
+#   cd /mnt/.../build/xar-1.6.1 && autoconf
+#   autoconf: error: no input file
 define XAR_RUN_AUTOCONF
-	cd $(@D) && autoconf
+	cd $(XAR_SRCDIR) && autoconf
 endef
 XAR_PRE_CONFIGURE_HOOKS += XAR_RUN_AUTOCONF
 

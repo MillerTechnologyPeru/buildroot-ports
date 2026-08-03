@@ -1,0 +1,71 @@
+Include stdlib.h wherever malloc/free/calloc/strtol are used
+
+None of these five lib/ files include stdlib.h, and each calls at least one
+of malloc/free/calloc/strtol without it. Modern GCC (14+) makes an implicit
+function declaration a hard error by default in C99+ mode, not a warning, so
+the build fails outright:
+
+  lib/linuxattr.c:103:51: error: implicit declaration of function 'malloc'
+  lib/linuxattr.c:110:78: error: implicit declaration of function 'free'
+  make[1]: *** [lib/Makefile.inc:199: lib/linuxattr.o] Error 1
+
+linuxattr.c and ext2.c are what a Linux build actually compiles and links;
+util.c is compiled unconditionally. darwinattr.c and fbsdattr.c happen not
+to hit this on Linux - the calls are inside platform #ifdefs that a Linux
+build never enters - but they have the exact same missing include, so this
+covers them too rather than waiting to hit them on some other host compiler.
+
+Verified by compiling with -Werror=implicit-function-declaration, the flag
+that reproduces the toolchain's failure, both before (fails) and after
+(builds clean) this patch.
+
+--- a/xar/lib/linuxattr.c	2026-08-02 22:44:08.593788113 -0400
++++ b/xar/lib/linuxattr.c	2026-08-02 22:44:26.953788019 -0400
+@@ -37,6 +37,7 @@
+ 
+ #include "config.h"
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <unistd.h>
+ #include <libgen.h>
+ #include "xar.h"
+--- a/xar/lib/ext2.c	2026-08-02 22:44:09.085788110 -0400
++++ b/xar/lib/ext2.c	2026-08-02 22:44:41.633787944 -0400
+@@ -41,6 +41,7 @@
+ #include "asprintf.h"
+ #endif
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <unistd.h>
+ #include "xar.h"
+ #include "arcmod.h"
+--- a/xar/lib/util.c	2026-08-02 22:44:09.697788107 -0400
++++ b/xar/lib/util.c	2026-08-02 22:45:14.957787775 -0400
+@@ -38,6 +38,7 @@
+ #define _FILE_OFFSET_BITS 64
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <sys/types.h>
+ #include <arpa/inet.h>
+ #include <string.h>
+--- a/xar/lib/darwinattr.c	2026-08-02 22:44:10.225788104 -0400
++++ b/xar/lib/darwinattr.c	2026-08-02 22:45:27.501787711 -0400
+@@ -39,6 +39,7 @@
+ 
+ #include "config.h"
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <libgen.h>
+--- a/xar/lib/fbsdattr.c	2026-08-02 22:44:10.777788102 -0400
++++ b/xar/lib/fbsdattr.c	2026-08-02 22:45:38.957787653 -0400
+@@ -36,6 +36,7 @@
+ */
+ 
+ #include "config.h"
++#include <stdlib.h>
+ #include <unistd.h>
+ #include "xar.h"
+ #include "arcmod.h"
