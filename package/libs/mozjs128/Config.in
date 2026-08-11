@@ -7,6 +7,10 @@ config BR2_PACKAGE_MOZJS128
 	depends on !BR2_STATIC_LIBS
 	depends on BR2_PACKAGE_HOST_RUSTC_TARGET_ARCH_SUPPORTS
 	select BR2_PACKAGE_ZLIB
+	# Its configure imports mach.logging, which imports the vendored
+	# blessed, which imports curses - so the host interpreter needs the
+	# module or configure stops before it starts.
+	select BR2_PACKAGE_HOST_PYTHON3_CURSES
 	help
 	  SpiderMonkey 128 ESR, Mozilla's JavaScript engine, built
 	  standalone from the Firefox ESR source. gjs - and through it
