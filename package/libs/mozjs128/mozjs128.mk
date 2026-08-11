@@ -36,7 +36,7 @@ MOZJS128_CONF_OPTS = \
 	--disable-tests \
 	--enable-optimize \
 	--enable-shared-js \
-	--enable-rust-simd=no \
+	--disable-rust-simd \
 	--with-intl-api \
 	--without-system-icu \
 	--with-system-zlib
