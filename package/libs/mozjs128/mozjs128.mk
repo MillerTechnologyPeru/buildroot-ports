@@ -17,9 +17,13 @@ MOZJS128_SITE = https://ftp.mozilla.org/pub/firefox/releases/$(MOZJS128_VERSION)
 MOZJS128_LICENSE = MPL-2.0
 MOZJS128_LICENSE_FILES = LICENSE
 MOZJS128_INSTALL_STAGING = YES
-MOZJS128_DEPENDENCIES = host-pkgconf host-python3 host-rustc zlib
+MOZJS128_DEPENDENCIES = host-pkgconf host-python3 host-rustc host-cbindgen zlib
 
+# CBINDGEN is an environment option of its configure (see
+# build/moz.configure/bindgen.configure), so name the host build's copy
+# instead of leaving configure to search PATH.
 MOZJS128_CONF_ENV = \
+	CBINDGEN=$(HOST_DIR)/bin/cbindgen \
 	$(TARGET_CONFIGURE_OPTS) \
 	RUSTC=$(HOST_DIR)/bin/rustc \
 	CARGO=$(HOST_DIR)/bin/cargo \
