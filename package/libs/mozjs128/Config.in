@@ -7,10 +7,22 @@ config BR2_PACKAGE_MOZJS128
 	depends on !BR2_STATIC_LIBS
 	depends on BR2_PACKAGE_HOST_RUSTC_TARGET_ARCH_SUPPORTS
 	select BR2_PACKAGE_ZLIB
-	# Its configure imports mach.logging, which imports the vendored
-	# blessed, which imports curses - so the host interpreter needs the
-	# module or configure stops before it starts.
+	# Its configure needs a host interpreter with the optional modules
+	# built in. They arrive transitively, not through the imports its
+	# moz.configure files declare - those are all modules Python always
+	# has - so reading the source does not predict them:
+	#
+	#   mach.logging -> blessed -> blessed.keyboard -> curses
+	#   mozboot.util -> ssl
+	#
+	# Both were found one configure failure at a time. bzip2 and xz are
+	# selected with them rather than waiting to learn the same way: all
+	# four are host-only, none is large, and mozbuild reaches for stdlib
+	# modules through import chains that are not worth chasing.
 	select BR2_PACKAGE_HOST_PYTHON3_CURSES
+	select BR2_PACKAGE_HOST_PYTHON3_SSL
+	select BR2_PACKAGE_HOST_PYTHON3_BZIP2
+	select BR2_PACKAGE_HOST_PYTHON3_XZ
 	help
 	  SpiderMonkey 128 ESR, Mozilla's JavaScript engine, built
 	  standalone from the Firefox ESR source. gjs - and through it
