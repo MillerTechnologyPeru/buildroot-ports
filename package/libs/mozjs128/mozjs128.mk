@@ -74,8 +74,13 @@ define MOZJS128_INSTALL_STAGING_CMDS
 		DESTDIR=$(STAGING_DIR) install
 endef
 
+# The shared library is left in Mozilla's dist/bin, the directory its build
+# collects shipped artifacts into, not beside the objects in js/src/build -
+# which holds only libmozjs-128_so.list, the linker input list. It carries no
+# SONAME, so the file name is what consumers record as NEEDED and this is the
+# name to install it under.
 define MOZJS128_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/buildroot-build/js/src/build/libmozjs-128.so \
+	$(INSTALL) -D -m 0755 $(@D)/buildroot-build/dist/bin/libmozjs-128.so \
 		$(TARGET_DIR)/usr/lib/libmozjs-128.so
 endef
 
