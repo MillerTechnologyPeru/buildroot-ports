@@ -22,9 +22,22 @@ MOZJS128_DEPENDENCIES = host-pkgconf host-python3 host-rustc host-cbindgen zlib
 # CBINDGEN is an environment option of its configure (see
 # build/moz.configure/bindgen.configure), so name the host build's copy
 # instead of leaving configure to search PATH.
+# AS must be the compiler driver, not binutils as. Mozilla assembles its .S
+# files with the same flags it compiles C with - preprocessor defines, include
+# paths, -fPIC, and -Wa, to forward on - which only a driver understands.
+# TARGET_CONFIGURE_OPTS sets AS=$(TARGET_CROSS)as, so the bundled ICU data
+# stopped the build with:
+#
+#   x86_64-...-as -o icu_data.o -DNDEBUG=1 ... -Wa,--noexecstack -fPIC -c icu_data.S
+#   x86_64-...-as: invalid option -- 'N'
+#
+# as bundles short options, so it read -DNDEBUG as -D -N -D -E -B -U -G and
+# rejected the N. Override after TARGET_CONFIGURE_OPTS, which is what makes it
+# win: the shell applies a command's assignments left to right.
 MOZJS128_CONF_ENV = \
 	CBINDGEN=$(HOST_DIR)/bin/cbindgen \
 	$(TARGET_CONFIGURE_OPTS) \
+	AS="$(TARGET_CC)" \
 	RUSTC=$(HOST_DIR)/bin/rustc \
 	CARGO=$(HOST_DIR)/bin/cargo \
 	MOZBUILD_STATE_PATH=$(@D)/.mozbuild
