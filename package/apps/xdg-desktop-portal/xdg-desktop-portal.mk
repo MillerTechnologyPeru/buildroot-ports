@@ -13,10 +13,11 @@ XDG_DESKTOP_PORTAL_DEPENDENCIES = \
 
 XDG_DESKTOP_PORTAL_CONF_OPTS = \
 	-Dflatpak-interfaces=disabled \
-	-Dgeolocation=disabled \
+	-Dgeoclue=disabled \
 	-Dsystemd=disabled \
 	-Ddocbook-docs=disabled \
 	-Dman-pages=disabled \
-	-Dtests=disabled
+	-Dpytest=disabled \
+	-Dinstalled-tests=false
 
 $(eval $(meson-package))
