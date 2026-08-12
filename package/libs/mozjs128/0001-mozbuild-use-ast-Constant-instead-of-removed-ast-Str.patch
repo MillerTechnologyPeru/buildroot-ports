@@ -1,0 +1,81 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] mozbuild: use ast.Constant instead of the removed ast.Str
+
+Python 3.12 removed ast.Str, deprecated since 3.8 in favour of ast.Constant.
+mozbuild's moz.build reader still builds one, so on a host Python of 3.12 or
+newer configure dies before it has read a single build file:
+
+  AttributeError: module 'ast' has no attribute 'Str'
+  ==============================
+  FATAL ERROR PROCESSING MOZBUILD FILE
+  ==============================
+      build/templates.mozbuild
+  The error was triggered on line 8 of this file:
+      @template
+
+RewriteName.visit_Name rewrites every uppercase name in a moz.build file into
+a subscript of the sandbox dict, and the subscript's slice was an
+ast.Index(ast.Str(...)). ast.Constant is the spelling for both: it has been
+the only string node since 3.8, and since 3.9 a subscript's slice is the
+expression itself rather than an ast.Index wrapper - which is why the plain
+ast.Constant below needs no Index around it. (ast.Index survives as a
+deprecated no-op, so it is only the ast.Str that actually breaks.)
+
+find_variables_from_ast had already been taught the 3.9 subscript form, but
+kept an else branch for older Pythons that reaches for both removed names, and
+its assigned_values helper was never converted at all. Since the tree cannot
+be read by a Python that lacks ast.Constant, drop the dead branch rather than
+extend the version test, and read .value where it read .s.
+
+Upstream keeps ESR 128 on the Python versions that shipped with it, so this is
+not fixed there; the same change landed on later trains.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/python/mozbuild/mozbuild/frontend/reader.py
++++ b/python/mozbuild/mozbuild/frontend/reader.py
+@@ -470,7 +470,7 @@
+             return c(
+                 ast.Subscript(
+                     value=c(ast.Name(id=self._global_name, ctx=ast.Load())),
+-                    slice=c(ast.Index(value=c(ast.Str(s=node.id)))),
++                    slice=c(ast.Constant(value=node.id)),
+                     ctx=node.ctx,
+                 )
+             )
+@@ -1027,16 +1027,9 @@
+ 
+             key = None
+             if isinstance(target, ast.Subscript):
+-                # We need to branch to deal with python version differences.
+-                if isinstance(target.slice, ast.Constant):
+-                    # Python >= 3.9
+-                    assert isinstance(target.slice.value, str)
+-                    key = target.slice.value
+-                else:
+-                    # Others
+-                    assert isinstance(target.slice, ast.Index)
+-                    assert isinstance(target.slice.value, ast.Str)
+-                    key = target.slice.value.s
++                assert isinstance(target.slice, ast.Constant)
++                assert isinstance(target.slice.value, str)
++                key = target.slice.value
+ 
+             return name, key
+ 
+@@ -1044,11 +1037,11 @@
+             value = node.value
+             if isinstance(value, ast.List):
+                 for v in value.elts:
+-                    assert isinstance(v, ast.Str)
+-                    yield v.s
++                    assert isinstance(v, ast.Constant)
++                    yield v.value
+             else:
+-                assert isinstance(value, ast.Str)
+-                yield value.s
++                assert isinstance(value, ast.Constant)
++                yield value.value
+ 
+         assignments = []
+ 
