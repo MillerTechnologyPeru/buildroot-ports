@@ -1,0 +1,58 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] data: do not require a native AppStream when cross compiling
+
+data/meson.build generates appstreamcli's own metainfo by running
+appstreamcli - the binary being built - so a cross build cannot run it and
+the file asks for a second, native copy of AppStream instead:
+
+  data/meson.build:12:4: ERROR: Dependency "appstream" not found
+  (tried pkg-config and cmake)
+
+Satisfying that means a full host build of AppStream and, below it, a host
+libxmlb, which Buildroot does not carry. That is a large amount of machinery
+for one XML file.
+
+The generated file differs from the one in the source tree only by having
+release notes folded in from NEWS and translations merged. The source file is
+already complete, valid metainfo for the tool, so install it directly when
+cross compiling and leave the native path exactly as it was. The two tests
+that run appstreamcli go with it; they cannot run in a cross build either.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/data/meson.build
++++ b/data/meson.build
+@@ -9,10 +9,20 @@
+ 
+ # Do not rely on an exe wrapper for rel-info, use the system one in that case
+ if meson.is_cross_build()
+-    dependency('appstream', version: '>=' + as_version, native: true,
+-               not_found_message: 'Native appstream required for cross-building')
+-    ascli_exe = find_program('appstreamcli', native: true)
+-endif
++    # Install the metainfo as it is in the source tree.
++    #
++    # The generated version differs from it in two ways: release notes folded
++    # in from NEWS, and translations merged. Both are produced by running
++    # appstreamcli, which is the thing being built - so a cross build needs a
++    # second, native copy of AppStream, and requiring one makes this file
++    # cost an entire host build of AppStream and everything under it.
++    #
++    # The source file is complete, valid metainfo describing appstreamcli. It
++    # is only missing the changelog and the translated summaries, neither of
++    # which is worth that.
++    install_data('org.freedesktop.appstream.cli.metainfo.xml',
++                 install_dir: metainfo_dir)
++else
+ 
+ # NOTE: We do not translate the release notes on purpose here.
+ # If you do want to give translators a chance to translate them,
+@@ -41,6 +51,8 @@
+            metainfo_i18n]
+ )
+ 
++endif
++
+ # install appstream.conf default template
+ install_data('appstream.conf',
+              install_dir: as_data_installdir)
