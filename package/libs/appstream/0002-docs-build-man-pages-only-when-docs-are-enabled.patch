@@ -1,0 +1,48 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] docs: build man pages only when docs are enabled
+
+docs/ is entered unconditionally and its man pages are built regardless of the
+docs option, so a build that asked for no documentation still stops here:
+
+  docs/meson.build:15:4: ERROR: Unable to find Docbook XSL stylesheets for
+  man pages
+
+The stylesheets have to be present locally and reachable through an XML
+catalog, since the sheet is named by its docbook.sourceforge.net URL and
+--nonet forbids fetching it. Buildroot has no docbook-xsl package at all, so
+this would mean adding one, plus the catalog wiring, to produce files that
+Buildroot's target-finalize then deletes - it removes
+$(TARGET_DIR)/usr/share/man unconditionally.
+
+Put the man pages behind the same docs option as the handbook and the API
+documentation. With -Ddocs=true the behaviour is unchanged.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/docs/meson.build
++++ b/docs/meson.build
+@@ -8,6 +8,15 @@
+ as_doc_target_dir = join_paths(get_option('datadir'), 'doc', 'appstream')
+ 
+ # make manual pages
++#
++# Behind the docs option, along with everything else here. Building these
++# needs xsltproc and a local copy of the Docbook XSL stylesheets, resolved
++# through an XML catalog, and a build that has asked for no documentation
++# should not fail for want of them:
++#
++#   ERROR: Unable to find Docbook XSL stylesheets for man pages
++if get_option('docs')
++
+ manpages_xsl = 'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl'
+ xsltproc = find_program('xsltproc')
+ if run_command([xsltproc, '--nonet', manpages_xsl],
+@@ -51,6 +60,8 @@
+     )
+ endif
+ 
++endif # docs
++
+ if get_option('docs') or get_option('apidocs')
+   # we need Python for the helper scripts if any doc generation is enabled at all
+   python_exe = find_program('python3', 'python')
