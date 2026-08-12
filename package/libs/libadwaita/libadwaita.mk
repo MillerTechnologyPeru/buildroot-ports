@@ -2,7 +2,10 @@
 #
 # libadwaita
 #
-# The release tarball ships the pregenerated stylesheet (no sassc needed).
+# The stylesheet is shipped as .scss and compiled at build time, so this needs
+# host-sassc: 1.6's src/stylesheet has exactly one .css in it, empty.css. When
+# sassc is missing, meson reaches for a wrap subproject, which Buildroot turns
+# off, and configure stops with "Subproject sassc is buildable: NO".
 #
 ################################################################################
 
@@ -12,7 +15,7 @@ LIBADWAITA_SITE = https://download.gnome.org/sources/libadwaita/1.6
 LIBADWAITA_LICENSE = LGPL-2.1+
 LIBADWAITA_LICENSE_FILES = COPYING
 LIBADWAITA_INSTALL_STAGING = YES
-LIBADWAITA_DEPENDENCIES = host-pkgconf libgtk4 appstream
+LIBADWAITA_DEPENDENCIES = host-pkgconf host-sassc libgtk4 appstream
 
 LIBADWAITA_CONF_OPTS = \
 	-Dexamples=false \
