@@ -15,10 +15,10 @@ LIBREST_DEPENDENCIES = host-pkgconf libsoup3 json-glib
 LIBREST_CONF_OPTS = -Dexamples=false -Dgtk_doc=false -Dtests=false -Dvapi=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-LIBREST_CONF_OPTS += -Dintrospection=enabled
+LIBREST_CONF_OPTS += -Dintrospection=true
 LIBREST_DEPENDENCIES += gobject-introspection
 else
-LIBREST_CONF_OPTS += -Dintrospection=disabled
+LIBREST_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

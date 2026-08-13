@@ -15,10 +15,10 @@ VTE4_DEPENDENCIES = host-pkgconf libgtk4 pcre2 lz4
 VTE4_CONF_OPTS = -Dgtk3=false -Dgtk4=true -Dvapi=false -Ddocs=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-VTE4_CONF_OPTS += -Dgir=enabled
+VTE4_CONF_OPTS += -Dgir=true
 VTE4_DEPENDENCIES += gobject-introspection
 else
-VTE4_CONF_OPTS += -Dgir=disabled
+VTE4_CONF_OPTS += -Dgir=false
 endif
 
 $(eval $(meson-package))

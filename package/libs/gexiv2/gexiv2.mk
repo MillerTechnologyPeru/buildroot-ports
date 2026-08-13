@@ -15,10 +15,10 @@ GEXIV2_DEPENDENCIES = host-pkgconf exiv2
 GEXIV2_CONF_OPTS = -Dpython3=false -Dvapi=false -Dtools=false -Dtests=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-GEXIV2_CONF_OPTS += -Dintrospection=enabled
+GEXIV2_CONF_OPTS += -Dintrospection=true
 GEXIV2_DEPENDENCIES += gobject-introspection
 else
-GEXIV2_CONF_OPTS += -Dintrospection=disabled
+GEXIV2_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

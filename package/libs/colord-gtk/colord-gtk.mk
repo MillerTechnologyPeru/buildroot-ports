@@ -15,10 +15,10 @@ COLORD_GTK_DEPENDENCIES = host-pkgconf colord libgtk4
 COLORD_GTK_CONF_OPTS = -Dgtk3=false -Dgtk4=true -Dman=false -Ddocs=false -Dvapi=false -Dtests=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-COLORD_GTK_CONF_OPTS += -Dintrospection=enabled
+COLORD_GTK_CONF_OPTS += -Dintrospection=true
 COLORD_GTK_DEPENDENCIES += gobject-introspection
 else
-COLORD_GTK_CONF_OPTS += -Dintrospection=disabled
+COLORD_GTK_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

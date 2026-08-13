@@ -15,10 +15,10 @@ GNOME_ONLINE_ACCOUNTS_DEPENDENCIES = host-pkgconf libgtk4 libadwaita webkitgtk l
 GNOME_ONLINE_ACCOUNTS_CONF_OPTS = -Dgoabackend=true -Ddocumentation=false -Dman=false -Dvapi=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dintrospection=enabled
+GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dintrospection=true
 GNOME_ONLINE_ACCOUNTS_DEPENDENCIES += gobject-introspection
 else
-GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dintrospection=disabled
+GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

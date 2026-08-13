@@ -11,6 +11,6 @@ EPIPHANY_LICENSE = GPL-3.0+
 EPIPHANY_LICENSE_FILES = COPYING
 EPIPHANY_DEPENDENCIES = host-pkgconf libgtk4 libadwaita webkitgtk json-glib libsoup3 gcr4 libportal iso-codes gsettings-desktop-schemas nettle libarchive sqlite
 
-EPIPHANY_CONF_OPTS = -Dunit_tests=disabled -Ddeveloper_mode=false -Dnetwork_tests=disabled
+EPIPHANY_CONF_OPTS = -Dunit_tests=disabled -Ddeveloper_mode=false
 
 $(eval $(meson-package))

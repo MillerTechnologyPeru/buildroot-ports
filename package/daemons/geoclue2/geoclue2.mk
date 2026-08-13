@@ -15,10 +15,10 @@ GEOCLUE2_DEPENDENCIES = host-pkgconf json-glib libsoup3
 GEOCLUE2_CONF_OPTS = -D3g-source=false -Dcdma-source=false -Dmodem-gps-source=false -Dnmea-source=false -Ddemo-agent=false -Dgtk-doc=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-GEOCLUE2_CONF_OPTS += -Dintrospection=enabled
+GEOCLUE2_CONF_OPTS += -Dintrospection=true
 GEOCLUE2_DEPENDENCIES += gobject-introspection
 else
-GEOCLUE2_CONF_OPTS += -Dintrospection=disabled
+GEOCLUE2_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

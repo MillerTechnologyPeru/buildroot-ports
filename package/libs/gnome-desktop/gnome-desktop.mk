@@ -17,10 +17,10 @@ GNOME_DESKTOP_CONF_OPTS = -Dgtk_doc=false -Ddesktop_docs=false -Dinstalled_tests
 # gnome-shell drives everything through GObject introspection typelibs, so
 # build them whenever the config carries gobject-introspection.
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-GNOME_DESKTOP_CONF_OPTS += -Dintrospection=enabled
+GNOME_DESKTOP_CONF_OPTS += -Dintrospection=true
 GNOME_DESKTOP_DEPENDENCIES += gobject-introspection
 else
-GNOME_DESKTOP_CONF_OPTS += -Dintrospection=disabled
+GNOME_DESKTOP_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

@@ -12,15 +12,15 @@ LIBGWEATHER_LICENSE_FILES = COPYING
 LIBGWEATHER_INSTALL_STAGING = YES
 LIBGWEATHER_DEPENDENCIES = host-pkgconf libsoup3 json-glib libxml2 tzdata
 
-LIBGWEATHER_CONF_OPTS = -Dgtk_doc=false -Dtests=false -Dvapi=false -Denable_vala=false
+LIBGWEATHER_CONF_OPTS = -Dgtk_doc=false -Dtests=false -Denable_vala=false
 
 # gnome-shell drives everything through GObject introspection typelibs, so
 # build them whenever the config carries gobject-introspection.
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-LIBGWEATHER_CONF_OPTS += -Dintrospection=enabled
+LIBGWEATHER_CONF_OPTS += -Dintrospection=true
 LIBGWEATHER_DEPENDENCIES += gobject-introspection
 else
-LIBGWEATHER_CONF_OPTS += -Dintrospection=disabled
+LIBGWEATHER_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

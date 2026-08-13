@@ -15,10 +15,10 @@ GNOME_BLUETOOTH_DEPENDENCIES = host-pkgconf libgtk4 libadwaita gsound libnotify 
 GNOME_BLUETOOTH_CONF_OPTS = -Dgtk_doc=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-GNOME_BLUETOOTH_CONF_OPTS += -Dintrospection=enabled
+GNOME_BLUETOOTH_CONF_OPTS += -Dintrospection=true
 GNOME_BLUETOOTH_DEPENDENCIES += gobject-introspection
 else
-GNOME_BLUETOOTH_CONF_OPTS += -Dintrospection=disabled
+GNOME_BLUETOOTH_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

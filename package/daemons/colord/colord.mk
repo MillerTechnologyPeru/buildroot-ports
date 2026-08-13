@@ -17,10 +17,10 @@ COLORD_CONF_OPTS = -Dman=false -Ddocs=false -Dbash_completion=false -Dsystemd=fa
 # gnome-shell drives everything through GObject introspection typelibs, so
 # build them whenever the config carries gobject-introspection.
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-COLORD_CONF_OPTS += -Dintrospection=enabled
+COLORD_CONF_OPTS += -Dintrospection=true
 COLORD_DEPENDENCIES += gobject-introspection
 else
-COLORD_CONF_OPTS += -Dintrospection=disabled
+COLORD_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

@@ -21,7 +21,7 @@ GNOME_SHELL_CONF_OPTS = \
 	-Dextensions_app=false \
 	-Dgtk_doc=false \
 	-Dman=false \
-	-Dtests=disabled \
+	-Dtests=false \
 	-Dportal_helper=false
 
 $(eval $(meson-package))

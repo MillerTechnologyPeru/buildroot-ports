@@ -15,10 +15,10 @@ LIBNMA_DEPENDENCIES = host-pkgconf network-manager libgtk4
 LIBNMA_CONF_OPTS = -Dlibnma_gtk4=true -Dgtk_doc=false -Dvapi=false -Dgcr=false -Dmobile_broadband_provider_info=false
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-LIBNMA_CONF_OPTS += -Dintrospection=enabled
+LIBNMA_CONF_OPTS += -Dintrospection=true
 LIBNMA_DEPENDENCIES += gobject-introspection
 else
-LIBNMA_CONF_OPTS += -Dintrospection=disabled
+LIBNMA_CONF_OPTS += -Dintrospection=false
 endif
 
 $(eval $(meson-package))

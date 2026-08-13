@@ -12,6 +12,6 @@ LOCALSEARCH_LICENSE_FILES = COPYING
 LOCALSEARCH_INSTALL_STAGING = YES
 LOCALSEARCH_DEPENDENCIES = host-pkgconf tinysparql libseccomp gexiv2
 
-LOCALSEARCH_CONF_OPTS = -Dman=false -Dtests=false -Dbattery_detection=none
+LOCALSEARCH_CONF_OPTS = -Dman=false -Dbattery_detection=none
 
 $(eval $(meson-package))
