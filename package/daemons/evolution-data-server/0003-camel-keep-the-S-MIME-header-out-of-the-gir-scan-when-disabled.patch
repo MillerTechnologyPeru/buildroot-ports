@@ -1,0 +1,37 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] camel: keep the S/MIME header out of the gir scan when disabled
+
+camel-smime-context.c compiles to nothing when S/MIME is off, since its whole
+body is inside #ifdef ENABLE_SMIME, but camel-smime-context.h declares the
+type either way. g-ir-scanner reads the header, emits a reference to the type
+function, and the temporary binary it links has nothing to resolve it against:
+
+  undefined reference to `camel_smime_context_get_type'
+
+Drop the pair from the scanner's source list when S/MIME is disabled. The
+files stay in the build - the header still installs, and the one function that
+lives outside the guard is still compiled.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/src/camel/CMakeLists.txt
++++ b/src/camel/CMakeLists.txt
+@@ -355,6 +355,18 @@
+ add_pkgconfig_file(camel.pc.in camel-${API_VERSION}.pc)
+ 
+ set(gir_sources ${SOURCES} ${HEADERS})
++
++# Without S/MIME, camel-smime-context.c compiles to nothing - its whole body
++# sits inside #ifdef ENABLE_SMIME - while camel-smime-context.h still declares
++# the type unconditionally. The scanner reads the header, emits a reference to
++# camel_smime_context_get_type(), and the temporary binary it links fails:
++#
++#   undefined reference to `camel_smime_context_get_type'
++#
++# Keep the pair out of the scan when there is nothing behind it.
++if(NOT ENABLE_SMIME)
++	list(REMOVE_ITEM gir_sources camel-smime-context.c camel-smime-context.h)
++endif(NOT ENABLE_SMIME)
+ set(gir_identifies_prefixes Camel camel)
+ set(gir_includes GObject-2.0 Gio-2.0 libxml2-2.0)
+ set(gir_cflags -DCAMEL_COMPILATION)

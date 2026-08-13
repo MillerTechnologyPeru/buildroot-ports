@@ -6,6 +6,7 @@ config BR2_PACKAGE_GNOME_CALCULATOR
 	select BR2_PACKAGE_LIBGEE
 	select BR2_PACKAGE_MPFR
 	select BR2_PACKAGE_GMP
+	select BR2_PACKAGE_MPC
 	select BR2_PACKAGE_LIBSOUP3 # currency rates
 	help
 	  Calculator, written in Vala; currency conversion pulls rates

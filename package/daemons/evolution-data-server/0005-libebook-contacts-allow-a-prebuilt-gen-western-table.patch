@@ -1,0 +1,89 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] libebook-contacts: allow a prebuilt gen-western-table
+
+gen-western-table is run during the build to generate e-name-western-tables.h,
+so it has to be a program the build machine can execute, but it is compiled as
+a target executable. That only works at all where the two architectures agree,
+and even there the binary looks for its libraries in the sysroot:
+
+  ./gen-western-table: error while loading shared libraries: libxml2.so.16:
+  cannot open shared object file: No such file or directory
+
+Let a ready-made one be named with -DGEN_WESTERN_TABLE=, in which case the
+target executable is not built at all. Without it, nothing changes.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/src/addressbook/libebook-contacts/CMakeLists.txt
++++ b/src/addressbook/libebook-contacts/CMakeLists.txt
+@@ -2,31 +2,48 @@
+ 
+ add_pkgconfig_file(libebook-contacts.pc.in libebook-contacts-${API_VERSION}.pc)
+ 
+-add_executable(gen-western-table
+-	gen-western-table.c
+-)
+-
+-target_compile_definitions(gen-western-table PRIVATE
+-	-DG_LOG_DOMAIN=\"gen-western-table\"
+-)
+-
+-target_compile_options(gen-western-table PUBLIC
+-	${GNOME_PLATFORM_CFLAGS}
+-)
+-
+-target_include_directories(gen-western-table PUBLIC
+-	${CMAKE_BINARY_DIR}
+-	${GNOME_PLATFORM_INCLUDE_DIRS}
+-)
+-
+-target_link_libraries(gen-western-table
+-	${GNOME_PLATFORM_LDFLAGS}
+-)
++# gen-western-table runs during the build to produce a header, so it has to be
++# a program of the build machine. Building it as a target executable only
++# works where the two architectures happen to agree, and even then the binary
++# looks for its libraries in the sysroot rather than where the loader searches:
++#
++#   ./gen-western-table: error while loading shared libraries: libxml2.so.16
++#
++# Accept a ready-made one through GEN_WESTERN_TABLE. When it is not given
++# nothing changes.
++if(GEN_WESTERN_TABLE)
++	set(_gen_western_table_exe ${GEN_WESTERN_TABLE})
++	set(_gen_western_table_dep)
++else(GEN_WESTERN_TABLE)
++	add_executable(gen-western-table
++		gen-western-table.c
++	)
++
++	target_compile_definitions(gen-western-table PRIVATE
++		-DG_LOG_DOMAIN=\"gen-western-table\"
++	)
++
++	target_compile_options(gen-western-table PUBLIC
++		${GNOME_PLATFORM_CFLAGS}
++	)
++
++	target_include_directories(gen-western-table PUBLIC
++		${CMAKE_BINARY_DIR}
++		${GNOME_PLATFORM_INCLUDE_DIRS}
++	)
++
++	target_link_libraries(gen-western-table
++		${GNOME_PLATFORM_LDFLAGS}
++	)
++
++	set(_gen_western_table_exe ${CMAKE_CURRENT_BINARY_DIR}/gen-western-table)
++	set(_gen_western_table_dep gen-western-table)
++endif(GEN_WESTERN_TABLE)
+ 
+ add_custom_command(
+ 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/e-name-western-tables.h
+-	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/gen-western-table "${CMAKE_CURRENT_SOURCE_DIR}/e-name-western-tables.h.in" >${CMAKE_CURRENT_BINARY_DIR}/e-name-western-tables.h
+-	DEPENDS gen-western-table e-name-western-tables.h.in
++	COMMAND ${_gen_western_table_exe} "${CMAKE_CURRENT_SOURCE_DIR}/e-name-western-tables.h.in" >${CMAKE_CURRENT_BINARY_DIR}/e-name-western-tables.h
++	DEPENDS ${_gen_western_table_dep} e-name-western-tables.h.in
+ )
+ 
+ set(DEPENDENCIES

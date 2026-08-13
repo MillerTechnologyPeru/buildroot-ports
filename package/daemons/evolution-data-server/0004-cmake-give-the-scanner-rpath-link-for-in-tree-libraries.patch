@@ -1,0 +1,67 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] cmake: give the scanner -rpath-link for in-tree libraries
+
+g-ir-scanner links a temporary binary against the libraries it scans. Those
+libraries need libedbus-private.so, which lives in the build tree rather than
+the sysroot, and the link fails on every symbol it provides:
+
+  ./libedataserver-1.2.so: undefined reference to `e_dbus_object_get_source'
+
+ld finds a shared library's own DT_NEEDED through -rpath-link. The scanner
+turns each --library-path into -L and -Wl,-rpath, and neither is consulted for
+that; verified directly, the same link succeeds as soon as -Wl,-rpath-link is
+added and fails without it.
+
+giscanner does derive -rpath-link entries from LD_LIBRARY_PATH, which is what
+INTROSPECTION_SCANNER_ENV is built to carry, but gir_add_introspection()
+unsets that variable before assembling the command, so it never reaches the
+scanner - LD_LIBRARY_PATH appears nowhere in a build log. Rather than rely on
+that path, compute the flags next to the library paths they mirror and hand
+them over as LDFLAGS, which the command was previously clearing outright.
+
+src/private is listed explicitly because it holds libedbus-private and not
+every gir target names it in its own library directories - libecal, for one,
+lists only camel and libedataserver, yet both of those need it.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/cmake/modules/GObjectIntrospection.cmake
++++ b/cmake/modules/GObjectIntrospection.cmake
+@@ -122,7 +122,7 @@
+ 		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${_gir_name}_files "${_gir_files}")
+ 
+ 		add_custom_command(
+-			COMMAND ${CMAKE_COMMAND} -E env "CC='${CMAKE_C_COMPILER}'" LDFLAGS=
++			COMMAND ${CMAKE_COMMAND} -E env "CC='${CMAKE_C_COMPILER}'" "LDFLAGS=${_gir_ldflags}"
+ 				${INTROSPECTION_SCANNER_ENV}
+ 				${G_IR_SCANNER}
+ 				${INTROSPECTION_SCANNER_ARGS}
+@@ -312,6 +312,28 @@
+ 		${_loader_library_path_var}="${_extra_loader_library_path_native}"
+ 	)
+ 
++	# ld resolves a shared library's own DT_NEEDED through -rpath-link, and
++	# through nothing else the scanner passes: --library-path becomes -L and
++	# -Wl,-rpath, neither of which is consulted for that. Libraries that live
++	# in the build tree rather than the sysroot - libedbus-private.so, say -
++	# therefore go unresolved when the scanner links its temporary binary.
++	#
++	# giscanner would derive these from LD_LIBRARY_PATH, which is what
++	# INTROSPECTION_SCANNER_ENV above carries, but gir_add_introspection()
++	# unsets that variable before it builds the command, so it never arrives.
++	# Pass the flags directly instead; _gir_ldflags survives into that macro,
++	# which shares this scope.
++	set(_gir_ldflags "")
++	foreach(_gir_rpath_dir
++		${CMAKE_BINARY_DIR}
++		${CMAKE_BINARY_DIR}/src
++		${CMAKE_BINARY_DIR}/src/private
++		${CMAKE_CURRENT_BINARY_DIR}
++		${${gir_extra_libdirs_var}}
++	)
++		set(_gir_ldflags "${_gir_ldflags} -Wl,-rpath-link,${_gir_rpath_dir}")
++	endforeach(_gir_rpath_dir)
++
+ 	gir_add_introspection(${gir_name})
+ 
+ endmacro(gir_add_introspection_simple)

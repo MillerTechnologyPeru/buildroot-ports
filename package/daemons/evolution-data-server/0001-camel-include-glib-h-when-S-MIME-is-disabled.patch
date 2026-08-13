@@ -1,0 +1,28 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] camel: include glib.h when S/MIME is disabled
+
+camel_smime_context_util_nss_error_to_string() sits after the
+#endif /* ENABLE_SMIME */ that closes the block starting at the top of the
+file, and that block holds every #include, glib's among them. Its signature
+uses glib types, so a build without S/MIME has nothing declaring them:
+
+  camel-smime-context.c:1911:7: error: unknown type name 'gchar'
+  camel-smime-context.c:1912:47: error: unknown type name 'gint'
+
+The function is meant to be built either way - it returns NULL when S/MIME is
+off, and says so in its own documentation - so include glib.h outside the
+guard.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/src/camel/camel-smime-context.c
++++ b/src/camel/camel-smime-context.c
+@@ -25,6 +25,8 @@
+ 
+ #include "evolution-data-server-config.h"
+ 
++#include <glib.h>
++
+ #ifdef ENABLE_SMIME
+ 
+ #include "nss.h"

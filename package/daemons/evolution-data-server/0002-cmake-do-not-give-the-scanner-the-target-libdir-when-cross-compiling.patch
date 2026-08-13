@@ -1,0 +1,53 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] cmake: do not give the scanner the target libdir when cross compiling
+
+GObjectIntrospection.cmake passes --library-path=${LIB_INSTALL_DIR} to
+g-ir-scanner, which turns it into a -L on the temporary binary it links. That
+directory is where the libraries will sit on the finished system; when cross
+compiling it is a path on the build machine instead, and the binary being
+linked is a target one. Buildroot's compiler wrapper refuses it:
+
+  ERROR: unsafe header/library path used in cross-compilation: '-L/usr/lib'
+  linking of temporary binary failed
+
+Nothing is lost by dropping it there: the three build-directory library paths
+listed above it are what actually locate the libraries being scanned. The
+native build keeps the flag.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/cmake/modules/GObjectIntrospection.cmake
++++ b/cmake/modules/GObjectIntrospection.cmake
+@@ -226,6 +226,23 @@
+ 	string(REGEX MATCHALL "-L[^ ]*"
+ 		_extra_library_path "${CMAKE_SHARED_LINKER_FLAGS}")
+ 
++	# LIB_INSTALL_DIR is where the libraries will live on the finished
++	# system. Handing it to the scanner as a --library-path is harmless
++	# natively, where it is a real directory, but when cross compiling it
++	# names a path on the host that belongs to the build machine, and the
++	# temporary binary the scanner links is a target binary. Buildroot's
++	# compiler wrapper stops exactly this:
++	#
++	#   ERROR: unsafe header/library path used in cross-compilation:
++	#   '-L/usr/lib'
++	#
++	# The build directories above already locate everything being scanned.
++	if(CMAKE_CROSSCOMPILING)
++		set(_gir_install_library_path "")
++	else(CMAKE_CROSSCOMPILING)
++		set(_gir_install_library_path "--library-path=${LIB_INSTALL_DIR}")
++	endif(CMAKE_CROSSCOMPILING)
++
+ 	set(INTROSPECTION_SCANNER_ARGS
+ 		--add-include-path=${CMAKE_BINARY_DIR}
+ 		--add-include-path=${CMAKE_BINARY_DIR}/src
+@@ -240,7 +257,7 @@
+ 		${_gir_identifies_prefixes}
+ 		${_gir_deps}
+ 		--add-include-path=${SHARE_INSTALL_PREFIX}/gir-1.0
+-		--library-path=${LIB_INSTALL_DIR}
++		${_gir_install_library_path}
+ 		${_extra_library_path}
+ 		--pkg-export ${pkg_export_prefix}-${gir_library_version}
+ 		--c-include=${c_include}
