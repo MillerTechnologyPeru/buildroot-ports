@@ -1,0 +1,35 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] meson: make the user documentation optional
+
+gnome.yelp() runs itstool to merge translations into the help pages, and
+subdir('help') is unconditional, so configure stops on a build that has no
+itstool:
+
+  help/meson.build:34:6: ERROR: Program 'itstool' not found or not executable
+
+Add a help option, defaulting to true so nothing changes for anyone building
+normally, and skip the subdir when it is off.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -8,3 +8,4 @@
+ option('gci', type: 'boolean', value: true, description: 'Build GCalc UI library')
+ option('app', type: 'boolean', value: true, description: 'Build GNOME Calculator Application')
+ option('doc', type: 'boolean', value: true, description: 'Build GCalc and/or GCi documentation')
++option('help', type: 'boolean', value: true, description: 'Build the user documentation with yelp (needs itstool)')
+--- a/meson.build
++++ b/meson.build
+@@ -109,9 +109,11 @@
+ subdir('lib')
+ subdir('src')
+ subdir('search-provider')
++if get_option('help')
+ subdir('help')
+ endif
+ endif
++endif
+ 
+ if get_option('doc')
+ subdir('doc')
