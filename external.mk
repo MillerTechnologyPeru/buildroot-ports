@@ -59,3 +59,20 @@ LIBICAL_CONF_OPTS += \
 # names that target, so a prerequisite there is simply never consulted.
 $(LIBICAL_DIR)/.stamp_configured: | host-libical libglib2 gobject-introspection
 endif
+
+# lz4 installs a liblz4.pc that says prefix=/usr/local, though Buildroot
+# installs it under /usr. Everything that links lz4 therefore picks up an
+# -I<sysroot>/usr/local/include that does not exist; it goes unnoticed until
+# something compiles with -Werror=missing-include-dirs, as vte does:
+#
+#   cc1: error: .../sysroot/usr/local/include: No such file or directory
+#
+# Correct the file where it is installed. Hooks are expanded when the recipe
+# runs, so appending from here reaches lz4 - unlike its dependency list.
+ifeq ($(BR2_PACKAGE_LZ4),y)
+define LZ4_FIX_PKGCONFIG_PREFIX
+	$(SED) 's:^prefix=/usr/local$$:prefix=/usr:' \
+		$(STAGING_DIR)/usr/lib/pkgconfig/liblz4.pc
+endef
+LZ4_POST_INSTALL_STAGING_HOOKS += LZ4_FIX_PKGCONFIG_PREFIX
+endif

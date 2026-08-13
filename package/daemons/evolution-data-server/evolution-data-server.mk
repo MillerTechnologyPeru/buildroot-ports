@@ -13,15 +13,17 @@ EVOLUTION_DATA_SERVER_SITE = https://download.gnome.org/sources/evolution-data-s
 EVOLUTION_DATA_SERVER_LICENSE = LGPL-2.1
 EVOLUTION_DATA_SERVER_LICENSE_FILES = COPYING
 EVOLUTION_DATA_SERVER_INSTALL_STAGING = YES
+# GTK4 is on for libedataserverui4, which gnome-calendar links against; the
+# GTK3 UI stays off.
 EVOLUTION_DATA_SERVER_DEPENDENCIES = \
-	host-pkgconf libical libsecret libsoup3 json-glib sqlite icu gcr4
+	host-pkgconf libical libsecret libsoup3 json-glib sqlite icu gcr4 libgtk4
 
 EVOLUTION_DATA_SERVER_CONF_OPTS = \
 	-DENABLE_GOA=OFF \
 	-DENABLE_EXAMPLES=OFF \
 	-DENABLE_TESTS=OFF \
 	-DENABLE_GTK=OFF \
-	-DENABLE_GTK4=OFF \
+	-DENABLE_GTK4=ON \
 	-DENABLE_OAUTH2_WEBKITGTK=OFF \
 	-DENABLE_OAUTH2_WEBKITGTK4=OFF \
 	-DENABLE_CANBERRA=OFF \

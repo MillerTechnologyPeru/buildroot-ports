@@ -10,7 +10,7 @@ LIBGWEATHER_SITE = https://download.gnome.org/sources/libgweather/4.4
 LIBGWEATHER_LICENSE = LGPL-2.1+
 LIBGWEATHER_LICENSE_FILES = COPYING
 LIBGWEATHER_INSTALL_STAGING = YES
-LIBGWEATHER_DEPENDENCIES = host-pkgconf libsoup3 json-glib libxml2 tzdata
+LIBGWEATHER_DEPENDENCIES = host-pkgconf host-python-pygobject libsoup3 json-glib libxml2 tzdata geocode-glib
 
 LIBGWEATHER_CONF_OPTS = -Dgtk_doc=false -Dtests=false -Denable_vala=false
 
