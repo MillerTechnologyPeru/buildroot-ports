@@ -1,0 +1,33 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] pipewire: cast the registry proxy back to pw_registry
+
+PipeWire 1.6 made pw_registry_add_listener a typed inline function taking a
+struct pw_registry *. It used to be a macro that took the proxy, which is why
+this file stores the registry as a struct pw_proxy * - it destroys it with
+pw_proxy_destroy - and passes that same pointer here. With the typed
+declaration the build stops:
+
+  ../src/pipewire.c:332:35: error: passing argument 1 of
+  'pw_registry_add_listener' from incompatible pointer type
+  [-Wincompatible-pointer-types]
+  note: expected 'struct pw_registry *' but argument is of type
+  'struct pw_proxy *'
+
+The pointer is a registry - four lines above it is the return value of
+pw_core_get_registry, cast to pw_proxy * for storage - so cast it back at the
+call site. That keeps pw_proxy_destroy correct on the field and leaves the
+lifetime handling alone.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/src/pipewire.c
++++ b/src/pipewire.c
+@@ -329,7 +329,7 @@
+   remote->registry = (struct pw_proxy*) pw_core_get_registry (remote->core,
+                                                               PW_VERSION_REGISTRY,
+                                                               0);
+-  pw_registry_add_listener (remote->registry,
++  pw_registry_add_listener ((struct pw_registry *) remote->registry,
+                             &remote->registry_listener,
+                             &registry_events,
+                             remote);
