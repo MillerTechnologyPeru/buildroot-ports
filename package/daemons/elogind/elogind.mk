@@ -18,7 +18,15 @@ ELOGIND_SITE = $(call github,elogind,elogind,v$(ELOGIND_VERSION))
 ELOGIND_LICENSE = LGPL-2.1+ (library), GPL-2.0+ (daemon)
 ELOGIND_LICENSE_FILES = LICENSES/LGPL-2.1-or-later.txt LICENSES/GPL-2.0-or-later.txt
 ELOGIND_INSTALL_STAGING = YES
-ELOGIND_DEPENDENCIES = host-pkgconf host-gperf libcap udev dbus
+# host-python-jinja2 renders the .in templates - libelogind.pc, logind.conf and
+# the rest - through tools/meson-render-jinja2.py during the build:
+#
+#   File ".../tools/meson-render-jinja2.py", line 10, in <module>
+#     import jinja2
+#   ModuleNotFoundError: No module named 'jinja2'
+#
+# It is a build-time generator only; nothing on the target imports jinja2.
+ELOGIND_DEPENDENCIES = host-pkgconf host-gperf host-python-jinja2 libcap udev dbus
 
 ELOGIND_CONF_OPTS = \
 	-Dmode=release \
