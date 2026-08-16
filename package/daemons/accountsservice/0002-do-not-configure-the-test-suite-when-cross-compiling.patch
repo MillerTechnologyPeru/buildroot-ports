@@ -1,0 +1,40 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Do not configure the test suite when cross compiling
+
+tests/meson.build decides whether to build the suite by asking the build
+machine's python whether it can import gi and dbusmock. That question is
+about the wrong machine: the tests import the target's AccountsService
+typelib, LD_PRELOAD a libmocklibc built for the target, and load
+libaccountsservice out of the build tree, so they can only run where the
+build output runs.
+
+While the answer was no the block was skipped and nothing noticed. It
+became yes here as a side effect of an unrelated change - host PyGObject
+was added so blueprint-compiler could resolve GTK widget names - and
+configuring then failed in the first thing the block does:
+
+    tests/meson.build:49:12: ERROR: Command
+    `.../tests/unittest_inspector.py .../tests/test-libaccountsservice.py`
+    failed with status 1.
+
+which is unittest_inspector.py importing the test module to enumerate its
+cases, and failing on the target-only imports inside it.
+
+Gate the block on a native build as well, so the suite is configured when
+it could actually be run and left alone otherwise.
+
+--- a/tests/meson.build
++++ b/tests/meson.build
+@@ -15,7 +15,11 @@
+ envs.prepend('LD_LIBRARY_PATH', accountsservice_build_dir)
+ 
+ python3_test_modules_found = false
+-if get_option('introspection')
++# The suite imports the target's AccountsService typelib and LD_PRELOADs a
++# target libmocklibc, so it can only run where the build output runs. Asking
++# the build machine's python whether it can import gi says nothing about
++# that, and answering yes is what drags unittest_inspector.py in.
++if get_option('introspection') and not meson.is_cross_build()
+     python3 = find_program('python3') # No meson without it!
+     python3_test_modules_found = true
+     python3_test_modules = [
