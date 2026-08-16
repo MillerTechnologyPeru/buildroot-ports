@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LZFSE
+	bool "lzfse"
+	help
+	  Apple's LZFSE compression library, and the lzfse command line
+	  tool that wraps it. LZFSE is the algorithm behind Apple
+	  Archive and the compression Apple platforms expose through
+	  libcompression; it also decodes LZVN, which is what an
+	  encrypted iOS/macOS kernelcache is packed with.
+
+	  https://github.com/lzfse/lzfse
