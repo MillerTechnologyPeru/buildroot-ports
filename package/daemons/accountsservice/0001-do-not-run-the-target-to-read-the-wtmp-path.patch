@@ -1,0 +1,60 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Do not run the target to read the wtmp path
+
+meson.build compiles a program that prints WTMPX_FILENAME and runs it to
+recover the value:
+
+    result = cc.run(code, name : 'value of WTMPX_FILENAME')
+    path_wtmp = result.stdout().strip()
+
+Cross compiling, that program is for the target and the build machine
+cannot execute it, so meson stops before configuring finishes:
+
+    meson.build:89:14: ERROR: Can not run test applications in this
+    cross environment.
+
+meson has no cross-file property to pre-answer a cc.run() - it raises as
+soon as it finds no exe_wrapper - so the value has to come from
+somewhere else. It is a compile-time constant in the C library's own
+headers, which are right there in the sysroot:
+
+    utmpx.h:      # define WTMPX_FILENAME _PATH_WTMPX
+    bits/utmpx.h: # define _PATH_WTMPX    _PATH_WTMP
+    paths.h:      # define _PATH_WTMP     "/var/log/wtmp"
+
+so the answer is /var/log/wtmp, and the same for _PATH_WTMPX in the
+branch below. Both branches are guarded by a has_header_symbol() check
+that only a glibc-style C library passes, and every one of those spells
+the path this way; a library that does not define these symbols falls
+through to the third branch, which is untouched.
+
+path_wtmp only reaches data/meson.build, where it is substituted into
+the D-Bus service file, and PATH_WTMP is still set to the symbol name
+rather than the value, so the compiled code keeps reading it from the
+header as before.
+
+--- a/meson.build
++++ b/meson.build
+@@ -86,8 +86,9 @@
+     return 0;
+   }
+   '''
+-  result = cc.run(code, name : 'value of WTMPX_FILENAME')
+-  path_wtmp = result.stdout().strip()
++  # Cross builds cannot run this; WTMPX_FILENAME resolves to _PATH_WTMP,
++  # which every C library defining it spells "/var/log/wtmp".
++  path_wtmp = '/var/log/wtmp'
+ 
+   config_h.set('PATH_WTMP', 'WTMPX_FILENAME')
+ elif cc.has_header_symbol('paths.h', '_PATH_WTMPX')
+@@ -98,8 +99,8 @@
+     return 0;
+   }
+   '''
+-  result = cc.run(code, name : 'value of _PATH_WTMPX')
+-  path_wtmp = result.stdout().strip()
++  # Same as above.
++  path_wtmp = '/var/log/wtmp'
+ 
+   config_h.set('PATH_WTMP', '_PATH_WTMPX')
+ else
