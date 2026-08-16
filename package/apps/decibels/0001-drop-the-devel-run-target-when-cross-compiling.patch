@@ -1,0 +1,40 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Drop the devel run target when cross compiling
+
+gjs_console comes from pkg-config:
+
+    gjs_console = gjs_dep.get_variable(pkgconfig: 'gjs_console')
+
+which answers with a path on the target - /usr/bin/gjs-console. That is
+the right answer for conf.set('GJS', gjs_console), whose value becomes
+the launcher's interpreter line and is only ever resolved on the device.
+
+run_target is the other consumer, and it needs the same path to name a
+program on the build machine. Cross compiling, it does not:
+
+    src/meson.build:55:0: ERROR: Program '/usr/bin/gjs-console' not
+    found or not executable
+
+'devel' runs the freshly built application out of the build tree, so a
+cross build has no use for it even if the lookup were satisfied - the
+binary it would launch is for another architecture. Guarding it leaves
+the launcher configuration untouched.
+
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -52,8 +52,10 @@
+   install_dir: decibels_bindir
+ )
+
+-run_target(
+-  'devel',
+-  command: [gjs_console, '-m', app_launcher],
+-  depends: [src_res, data_res]
+-)
++if not meson.is_cross_build()
++  run_target(
++    'devel',
++    command: [gjs_console, '-m', app_launcher],
++    depends: [src_res, data_res]
++  )
++endif
