@@ -1,0 +1,13 @@
+config BR2_PACKAGE_HOST_BLUEPRINT_COMPILER
+	bool "host blueprint-compiler"
+	help
+	  Compiler for GNOME's Blueprint markup language, which builds
+	  .blp files into the GTK .ui XML that GtkBuilder loads. A build
+	  tool only - it runs on the build machine and installs nothing
+	  on the target.
+
+	  Buildroot sources only Config.in from an external tree, with no
+	  Config.in.host equivalent, so this host-only symbol appears here
+	  among the target packages rather than under Host utilities.
+
+	  https://gitlab.gnome.org/jwestman/blueprint-compiler
