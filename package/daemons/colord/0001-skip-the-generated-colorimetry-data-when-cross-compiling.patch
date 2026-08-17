@@ -1,0 +1,135 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Skip the generated colorimetry data when cross compiling
+
+data/cmf and data/illuminant convert their CSV sources by running the
+cd-it8 that was just built - and that binary is for the target, so meson
+stops at configure time:
+
+    ERROR: An exe_wrapper is needed for .../client/cd-it8 but was not
+    found. Please define one in cross file and check the command and/or
+    add it to PATH.
+
+A host cd-it8 is not a practical way out: colord asks for gusb, gudev
+and libudev unconditionally at the top of meson.build, so building the
+library it links against for the build machine would mean host variants
+of all three, and libgudev wants udev itself.
+
+Dropping the files costs nothing here. They are reference spectra and
+colour matching functions for calibrating a display against a measuring
+instrument; nothing in colord reads them from where they install - only
+the test suite loads them, and out of the build directory - and this
+build already has argyllcms_sensor disabled, so there is no instrument
+to calibrate against in the first place.
+
+--- a/data/cmf/meson.build
++++ b/data/cmf/meson.build
+@@ -1,9 +1,22 @@
+-foreach arg: [ 'CIE1964-10deg-XYZ', 'CIE1931-2deg-XYZ' ]
+-  custom_target(arg,
+-    input: arg + '.csv',
+-    output: arg + '.cmf',
+-    command: [ cd_idt8, 'create-cmf', '@OUTPUT@', '@INPUT@', '1.0' ],
+-    install: true,
+-    install_dir: join_paths(datadir, 'colord', 'cmf')
+-  )
+-endforeach
++# cd-it8 is built for the target, so a cross build cannot run it to convert
++# these CSVs:
++#
++#   ERROR: An exe_wrapper is needed for .../client/cd-it8 but was not
++#   found. Please define one in cross file and check the command and/or
++#   add it to PATH.
++#
++# The outputs are reference data for calibrating against a measuring
++# instrument. Nothing in colord loads them from their installed location -
++# only the test suite reads them, out of the build directory - and a build
++# with argyllcms_sensor disabled has no sensor to calibrate with.
++if not meson.is_cross_build()
++  foreach arg: [ 'CIE1964-10deg-XYZ', 'CIE1931-2deg-XYZ' ]
++    custom_target(arg,
++      input: arg + '.csv',
++      output: arg + '.cmf',
++      command: [ cd_idt8, 'create-cmf', '@OUTPUT@', '@INPUT@', '1.0' ],
++      install: true,
++      install_dir: join_paths(datadir, 'colord', 'cmf')
++    )
++  endforeach
++endif
+--- a/data/illuminant/meson.build
++++ b/data/illuminant/meson.build
+@@ -1,31 +1,44 @@
+-generated_spectra = [
+-  'CIE-A',
+-  'CIE-B',
+-  'CIE-C',
+-  'CIE-D50',
+-  'CIE-D55',
+-  'CIE-D65',
+-  'CIE-D93',
+-  'CIE-E',
+-  'CIE-F10',
+-  'CIE-F11',
+-  'CIE-F12',
+-  'CIE-F1',
+-  'CIE-F2',
+-  'CIE-F3',
+-  'CIE-F4',
+-  'CIE-F5',
+-  'CIE-F6',
+-  'CIE-F7',
+-  'CIE-F8',
+-  'CIE-F9',
+-]
+-foreach arg: generated_spectra
+-  custom_target(arg,
+-    input: arg + '.csv',
+-    output: arg + '.sp',
+-    command: [ cd_idt8, 'create-sp', '@OUTPUT@', '@INPUT@', '100.0' ],
+-    install: true,
+-    install_dir: join_paths(datadir, 'colord', 'illuminant')
+-  )
+-endforeach
++# cd-it8 is built for the target, so a cross build cannot run it to convert
++# these CSVs:
++#
++#   ERROR: An exe_wrapper is needed for .../client/cd-it8 but was not
++#   found. Please define one in cross file and check the command and/or
++#   add it to PATH.
++#
++# The outputs are reference data for calibrating against a measuring
++# instrument. Nothing in colord loads them from their installed location -
++# only the test suite reads them, out of the build directory - and a build
++# with argyllcms_sensor disabled has no sensor to calibrate with.
++if not meson.is_cross_build()
++  generated_spectra = [
++    'CIE-A',
++    'CIE-B',
++    'CIE-C',
++    'CIE-D50',
++    'CIE-D55',
++    'CIE-D65',
++    'CIE-D93',
++    'CIE-E',
++    'CIE-F10',
++    'CIE-F11',
++    'CIE-F12',
++    'CIE-F1',
++    'CIE-F2',
++    'CIE-F3',
++    'CIE-F4',
++    'CIE-F5',
++    'CIE-F6',
++    'CIE-F7',
++    'CIE-F8',
++    'CIE-F9',
++  ]
++  foreach arg: generated_spectra
++    custom_target(arg,
++      input: arg + '.csv',
++      output: arg + '.sp',
++      command: [ cd_idt8, 'create-sp', '@OUTPUT@', '@INPUT@', '100.0' ],
++      install: true,
++      install_dir: join_paths(datadir, 'colord', 'illuminant')
++    )
++  endforeach
++endif
