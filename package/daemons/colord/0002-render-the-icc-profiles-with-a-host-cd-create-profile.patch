@@ -1,0 +1,71 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Render the ICC profiles with a host cd-create-profile
+
+data/profiles renders the standard display profiles - sRGB, AdobeRGB,
+Rec709 and the rest - by running the cd-create-profile that was just
+built for the target, so meson stops at configure time:
+
+    ERROR: An exe_wrapper is needed for .../client/cd-create-profile but
+    was not found. Please define one in cross file and check the
+    command and/or add it to PATH.
+
+Unlike the reference spectra in data/cmf and data/illuminant, these
+cannot simply be skipped: they install to /usr/share/color/icc/colord,
+which the daemon scans at start-up and which is what the colour panel in
+Settings lists, so an image without them has an empty panel.
+
+The generator itself is small: cd-create-profile links the colour, DOM
+and ICC halves of the library plus gio and lcms2, none of it hardware,
+so a build machine copy is cheap to make. Add a host_cd_create_profile
+option naming one; when set, the custom targets run it instead of the
+target binary. A native build leaves it empty and behaves as before.
+
+It is a path option rather than a find_program() lookup deliberately.
+The host copy is compiled out of this same tree after configure - the
+sources include config.h - so it does not exist yet when meson reads
+this file, only by the time ninja runs the command. A string is stored
+unchecked; find_program() would fail on the missing file.
+
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -16,3 +16,4 @@
+ option('pnp_ids', type : 'string', value : '', description : 'Location of pnp.ids if hwdb is not available')
+ option('man', type : 'boolean', value : true, description : 'Generate man pages')
+ option('docs', type : 'boolean', value : true, description : 'Generate documentation')
++option('host_cd_create_profile', type : 'string', value : '', description : 'Path to a cd-create-profile that runs on the build machine, for rendering the ICC profiles when cross compiling')
+--- a/data/profiles/meson.build
++++ b/data/profiles/meson.build
+@@ -47,6 +47,24 @@
+   icc_profiles += icc_print_profiles
+ endif
+ 
++# The cd-create-profile built above is for the target, so a cross build
++# cannot run it to render these:
++#
++#   ERROR: An exe_wrapper is needed for .../client/cd-create-profile but
++#   was not found.
++#
++# The generator only needs the colour and ICC halves of the library plus
++# gio and lcms2, none of it hardware, so a build machine copy is cheap.
++# It is taken as a path rather than looked up with find_program because
++# it is compiled from this tree after configure, using config.h - so it
++# does not exist yet when this file is read, only when ninja runs it.
++host_cd_create_profile = get_option('host_cd_create_profile')
++if host_cd_create_profile != ''
++  icc_generator = host_cd_create_profile
++else
++  icc_generator = cd_create_profile
++endif
++
+ generated_iccs = []
+ foreach arg: icc_profiles
+   xml_i18n = i18n.merge_file(
+@@ -59,7 +77,7 @@
+   generated_icc = custom_target(arg + '.icc',
+     input: xml_i18n,
+     output: arg + '.icc',
+-    command: [ cd_create_profile, '--output=@OUTPUT@', '@INPUT@' ],
++    command: [ icc_generator, '--output=@OUTPUT@', '@INPUT@' ],
+     install: true,
+     install_dir: join_paths(datadir, 'color', 'icc', 'colord'),
+   )

@@ -10,9 +10,55 @@ COLORD_SITE = https://www.freedesktop.org/software/colord/releases
 COLORD_LICENSE = GPL-2.0+, LGPL-2.1+ (libraries)
 COLORD_LICENSE_FILES = COPYING
 COLORD_INSTALL_STAGING = YES
-COLORD_DEPENDENCIES = host-pkgconf lcms2 libgudev libgusb sqlite dbus
+COLORD_DEPENDENCIES = host-pkgconf host-lcms2 host-libglib2 lcms2 libgudev libgusb sqlite dbus
 
 COLORD_CONF_OPTS = -Dman=false -Ddocs=false -Dbash_completion=false -Dsystemd=false -Dargyllcms_sensor=false -Dsession_example=false -Dtests=false -Dinstalled_tests=false -Dvapi=false -Dprint_profiles=false -Dlibcolordcompat=false -Ddaemon_user=colord
+
+# data/profiles renders the standard ICC display profiles - sRGB, AdobeRGB,
+# Rec709 - by running the cd-create-profile it just built, which is for the
+# target. The 0002 patch adds a host_cd_create_profile option naming a
+# build-machine copy to run instead; this is where that copy comes from.
+#
+# A host meson build of colord is not on the table - it asks for gusb, gudev
+# and libudev unconditionally, and neither of the first two has a host
+# variant - but the generator itself needs none of that: it links the
+# colour, DOM and ICC halves of the library plus gio and lcms2. So compile
+# exactly those sources for the host, straight from the tree. cd-edid.c is
+# the one file in the library that touches gudev, and cd-create-profile does
+# not call into it.
+#
+# HOST_MAKE_ENV is what makes pkg-config answer for the host: a package's
+# recipes run with PKG_CONFIG_SYSROOT_DIR and PKG_CONFIG_LIBDIR pointing into
+# the target sysroot, so asking without it returns the target's glib and the
+# host link then fails on the target libc. Both generated headers the sources
+# want - config.h and lib/colord/cd-version.h - are written by configure, so
+# this runs after it.
+#
+# The option is a plain path so meson stores it unchecked at configure time
+# - the binary is compiled by this hook, which runs after configure, and only
+# needs to exist by the time ninja runs it. It stays in the build tree, so
+# nothing about it reaches the host tree or the target.
+COLORD_HOST_SRCS = \
+	cd-buffer cd-color cd-context-lcms cd-dom cd-enum cd-icc cd-icc-store \
+	cd-icc-utils cd-interp-akima cd-interp cd-interp-linear cd-it8 \
+	cd-it8-utils cd-math cd-quirk cd-spectrum cd-transform
+define COLORD_BUILD_HOST_CREATE_PROFILE
+	mkdir -p $(@D)/host-bin
+	$(HOST_MAKE_ENV) $(HOSTCC) $(HOST_CFLAGS) \
+		-DCD_COMPILATION -DG_LOG_DOMAIN='"Cd"' \
+		-DLOCALSTATEDIR='"/var"' \
+		-DPACKAGE_NAME='"colord"' -DPACKAGE_VERSION='"$(COLORD_VERSION)"' \
+		-I$(@D) -I$(@D)/lib -I$(@D)/lib/colord \
+		-I$(@D)/buildroot-build -I$(@D)/buildroot-build/lib/colord \
+		`$(HOST_MAKE_ENV) $(HOST_DIR)/bin/pkg-config --cflags gio-2.0 gio-unix-2.0 lcms2` \
+		-o $(@D)/host-bin/cd-create-profile \
+		$(@D)/client/cd-create-profile.c \
+		$(foreach s,$(COLORD_HOST_SRCS),$(@D)/lib/colord/$(s).c) \
+		`$(HOST_MAKE_ENV) $(HOST_DIR)/bin/pkg-config --libs gio-2.0 gio-unix-2.0 lcms2` \
+		$(HOST_LDFLAGS) -lm
+endef
+COLORD_POST_CONFIGURE_HOOKS += COLORD_BUILD_HOST_CREATE_PROFILE
+COLORD_CONF_OPTS += -Dhost_cd_create_profile=$(@D)/host-bin/cd-create-profile
 
 # gnome-shell drives everything through GObject introspection typelibs, so
 # build them whenever the config carries gobject-introspection.
