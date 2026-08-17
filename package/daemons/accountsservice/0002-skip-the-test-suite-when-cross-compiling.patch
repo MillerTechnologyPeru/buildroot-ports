@@ -1,0 +1,49 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Skip the test suite when cross compiling
+
+The suite cannot run anywhere but on the target: it imports the target's
+AccountsService typelib, LD_PRELOADs a libmocklibc built for the target,
+and loads libaccountsservice out of the build tree.
+
+tests/meson.build decided this for itself by asking the build machine's
+python whether it could import gi and dbusmock. That is a question about
+the wrong machine, and while the answer was no the directory quietly did
+nothing. Once host PyGObject was installed for an unrelated reason the
+answer became yes, and configuring failed in the first thing the block
+does:
+
+    tests/meson.build:49:12: ERROR: Command
+    `.../unittest_inspector.py .../test-libaccountsservice.py`
+    failed with status 1.
+
+that being unittest_inspector.py importing the test module to enumerate
+its cases and hitting the target-only imports inside it.
+
+Guarding the block was not enough. subproject('mocklibc') sits above it,
+outside any condition, so the mock C library was still configured and
+built - and it does not survive a compiler defaulting to C23:
+
+    ../subprojects/mocklibc-1.0/src/netgroup-debug.c:25:3: error:
+    implicit declaration of function 'print_indent'
+    [-Wimplicit-function-declaration]
+
+Skip the whole directory instead. Nothing outside it uses libmocklibc,
+and nothing after subdir('tests') depends on anything it defines.
+
+--- a/meson.build
++++ b/meson.build
+@@ -233,7 +233,13 @@
+   subdir('doc/libaccountsservice')
+ endif
+ 
+-subdir('tests')
++# The suite imports the target's AccountsService typelib, LD_PRELOADs a
++# libmocklibc built for the target and loads libaccountsservice out of the
++# build tree, so none of it can run on the build machine. Skipping the
++# directory also skips the mocklibc subproject it builds for that purpose.
++if not meson.is_cross_build()
++  subdir('tests')
++endif
+ 
+ configure_file(
+   output: 'config.h',
