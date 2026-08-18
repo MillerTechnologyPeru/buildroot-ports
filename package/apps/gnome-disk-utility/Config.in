@@ -1,7 +1,10 @@
 config BR2_PACKAGE_GNOME_DISK_UTILITY
 	bool "gnome-disk-utility"
-	depends on BR2_PACKAGE_LIBGTK4
-	select BR2_PACKAGE_LIBADWAITA
+	depends on BR2_PACKAGE_LIBGTK3 # Disks 46 is GTK 3 on libhandy
+	select BR2_PACKAGE_LIBHANDY
+	select BR2_PACKAGE_LIBCANBERRA # gtk3 half comes with BR2_PACKAGE_LIBGTK3_X11
+	select BR2_PACKAGE_LIBNOTIFY
+	select BR2_PACKAGE_XZ # liblzma, for compressed disk images
 	select BR2_PACKAGE_UDISKS2
 	select BR2_PACKAGE_LIBPWQUALITY
 	select BR2_PACKAGE_LIBSECRET

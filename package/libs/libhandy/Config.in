@@ -1,0 +1,9 @@
+config BR2_PACKAGE_LIBHANDY
+	bool "libhandy"
+	depends on BR2_PACKAGE_LIBGTK3
+	select BR2_PACKAGE_FRIBIDI
+	help
+	  Adaptive widgets for GTK 3 applications - the GTK 3 counterpart
+	  of libadwaita. gnome-disk-utility is built on it.
+
+	  https://gitlab.gnome.org/GNOME/libhandy

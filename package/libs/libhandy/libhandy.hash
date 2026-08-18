@@ -1,0 +1,4 @@
+# From https://download.gnome.org/sources/libhandy/1.8/libhandy-1.8.3.sha256sum
+sha256  05b497229073ff557f10b326e074c5066f8743a302d4820ab97bcb5cd2dab087  libhandy-1.8.3.tar.xz
+# Locally computed
+sha256  dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551  COPYING
