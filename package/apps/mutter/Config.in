@@ -17,6 +17,7 @@ config BR2_PACKAGE_MUTTER
 	select BR2_PACKAGE_ELOGIND
 	select BR2_PACKAGE_GSETTINGS_DESKTOP_SCHEMAS
 	select BR2_PACKAGE_XKEYBOARD_CONFIG
+	select BR2_PACKAGE_STARTUP_NOTIFICATION # for Xwayland clients
 	help
 	  GNOME's Wayland compositor and window manager; gnome-shell is
 	  a mutter client/plugin. Runs natively on KMS/DRM through its

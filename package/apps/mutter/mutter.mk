@@ -16,11 +16,17 @@ MUTTER_SITE = https://download.gnome.org/sources/mutter/47
 MUTTER_LICENSE = GPL-2.0+
 MUTTER_LICENSE_FILES = COPYING
 MUTTER_INSTALL_STAGING = YES
+# startup-notification: -Dstartup_notification=true below, and it applies
+# whenever there are X11 clients - which Xwayland provides even with the
+# native X11 backend off - so meson asks for the library:
+#
+#   meson.build:310:32: ERROR: Dependency "libstartup-notification-1.0"
+#   not found
 MUTTER_DEPENDENCIES = \
 	host-pkgconf graphene libgtk4 libei libdisplay-info colord lcms2 \
 	libinput libdrm libxkbcommon wayland wayland-protocols pipewire \
 	libwacom elogind gsettings-desktop-schemas xkeyboard-config \
-	host-wayland
+	host-wayland startup-notification
 
 MUTTER_CONF_OPTS = \
 	-Degl_device=true \
