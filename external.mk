@@ -76,3 +76,19 @@ define LZ4_FIX_PKGCONFIG_PREFIX
 endef
 LZ4_POST_INSTALL_STAGING_HOOKS += LZ4_FIX_PKGCONFIG_PREFIX
 endif
+
+# Buildroot's gsettings-desktop-schemas passes -Dintrospection=false with no
+# condition, so its GDesktopEnums-3.0.gir is never written - and gnome-desktop
+# includes that gir in its own:
+#
+#   Couldn't find include 'GDesktopEnums-3.0.gir'
+#
+# Build it whenever gobject-introspection is in the configuration, the way
+# the ports packages do. CONF_OPTS is expanded when the recipe runs, so a
+# later -Dintrospection=true wins over the false already there; the
+# dependency list is not, so gobject-introspection is ordered against the
+# stamp instead - see the libical note above.
+ifeq ($(BR2_PACKAGE_GSETTINGS_DESKTOP_SCHEMAS)$(BR2_PACKAGE_GOBJECT_INTROSPECTION),yy)
+GSETTINGS_DESKTOP_SCHEMAS_CONF_OPTS += -Dintrospection=true
+$(GSETTINGS_DESKTOP_SCHEMAS_DIR)/.stamp_configured: | gobject-introspection
+endif
