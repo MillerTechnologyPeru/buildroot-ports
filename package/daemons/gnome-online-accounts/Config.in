@@ -6,6 +6,7 @@ config BR2_PACKAGE_GNOME_ONLINE_ACCOUNTS
 	select BR2_PACKAGE_LIBREST
 	select BR2_PACKAGE_LIBSECRET
 	select BR2_PACKAGE_GCR4
+	select BR2_PACKAGE_KEYUTILS if BR2_PACKAGE_LIBKRB5
 	help
 	  Online-accounts D-Bus service and backend library; the control
 	  center's accounts panel requires the backend, which needs

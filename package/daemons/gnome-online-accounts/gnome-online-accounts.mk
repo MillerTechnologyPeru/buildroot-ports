@@ -14,6 +14,22 @@ GNOME_ONLINE_ACCOUNTS_DEPENDENCIES = host-pkgconf libgtk4 libadwaita webkitgtk l
 
 GNOME_ONLINE_ACCOUNTS_CONF_OPTS = -Dgoabackend=true -Ddocumentation=false -Dman=false -Dvapi=false
 
+# The Kerberos provider defaults on and, with goabackend, wants krb5 and
+# libkeyutils at configure time:
+#
+#   meson.build:190:20: ERROR: Dependency "libkeyutils" not found
+#
+# It was finding krb5 only because something else had put it in the
+# sysroot, and never finding keyutils. Make it follow BR2_PACKAGE_LIBKRB5
+# and name both, so the provider is a decision rather than an accident of
+# build order.
+ifeq ($(BR2_PACKAGE_LIBKRB5),y)
+GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dkerberos=true
+GNOME_ONLINE_ACCOUNTS_DEPENDENCIES += libkrb5 keyutils
+else
+GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dkerberos=false
+endif
+
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
 GNOME_ONLINE_ACCOUNTS_CONF_OPTS += -Dintrospection=true
 GNOME_ONLINE_ACCOUNTS_DEPENDENCIES += gobject-introspection
