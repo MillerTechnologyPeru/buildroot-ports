@@ -24,6 +24,19 @@ IBUS_INSTALL_STAGING = YES
 # and its output simple.xml.in ships pre-generated in the tarball, so this
 # is purely to get past the check. Nothing python reaches the target:
 # --disable-python-library below keeps the bindings out.
+#
+# One thing configure derives from that interpreter has to be overridden.
+# It auto-detects pygobject with no switch to turn it off, then asks the
+# python it was given where the GI overrides live - and the host python
+# answers with a host path, which ibus then installs the IBus.py override
+# under, inside the staging tree:
+#
+#   ibus: installs files in <sysroot>//mnt/br/output/x86_64
+#
+# --with-python-overrides-dir exists for exactly this and takes a plain
+# path; a target-relative one keeps the file inside the sysroot. It is a
+# 300-line pure-python shim with no target python to load it, so where it
+# lands does not matter, only that it lands somewhere sane.
 IBUS_DEPENDENCIES = host-pkgconf host-python3 libglib2 dconf
 
 # appindicator is the panel-icon integration for desktops that use
@@ -48,7 +61,8 @@ IBUS_CONF_OPTS = \
 	--disable-emoji-dict \
 	--disable-unicode-dict \
 	--disable-python-library \
-	--with-python=$(HOST_DIR)/bin/python3
+	--with-python=$(HOST_DIR)/bin/python3 \
+	--with-python-overrides-dir=/usr/lib/python3/dist-packages/gi/overrides
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
 IBUS_CONF_OPTS += --enable-introspection
