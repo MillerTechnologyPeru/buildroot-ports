@@ -22,9 +22,14 @@ FLATPAK_SOURCE = flatpak-$(FLATPAK_VERSION).tar.xz
 FLATPAK_LICENSE = LGPL-2.1+
 FLATPAK_LICENSE_FILES = COPYING
 FLATPAK_INSTALL_STAGING = YES
+# host-python-pyparsing for the variant-schema-compiler that generates the
+# GVariant accessors at build time; configure checks the module up front:
+#
+#   meson.build:257:2: ERROR: Problem encountered: python3 "pyparsing"
+#   module is required
 FLATPAK_DEPENDENCIES = libostree bubblewrap xdg-dbus-proxy json-glib \
 	appstream libxmlb libfuse3 libgpgme libseccomp zstd libcurl dbus \
-	host-pkgconf
+	host-pkgconf host-python-pyparsing
 
 # profile_dir is where the XDG_DATA_DIRS snippet lands that makes desktop
 # environments see exported .desktop files and icons; /etc/profile.d is
