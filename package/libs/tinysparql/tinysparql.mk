@@ -12,7 +12,16 @@ TINYSPARQL_LICENSE_FILES = COPYING.LGPL
 TINYSPARQL_INSTALL_STAGING = YES
 TINYSPARQL_DEPENDENCIES = host-pkgconf json-glib libsoup3 sqlite icu
 
-TINYSPARQL_CONF_OPTS = -Dman=false -Ddocs=false -Dtests=false
+# systemd_user_services defaults on and, absent systemd, needs a directory
+# named or the option off:
+#
+#   meson.build:293:6: ERROR: systemd user services were enabled, but
+#   systemd was not found
+#
+# vapi defaults enabled and would run vapigen, which the host tree does not
+# have; nothing here consumes Vala bindings.
+TINYSPARQL_CONF_OPTS = -Dman=false -Ddocs=false -Dtests=false \
+	-Dsystemd_user_services=false -Dvapi=disabled
 
 # Two of configure's checks compile a probe and run it, which a cross build
 # cannot, so both take their answer from the cross file's [properties]:
