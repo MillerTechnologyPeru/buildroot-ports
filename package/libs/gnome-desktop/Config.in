@@ -8,5 +8,7 @@ config BR2_PACKAGE_GNOME_DESKTOP
 	help
 	  gnome-desktop-4: shared helpers (languages, wallpaper,
 	  thumbnails, xkb info) for gnome-shell and the settings daemon.
+	  The legacy GTK 3 library, gnome-desktop-3, is built as well
+	  when GTK 3 is enabled; gnome-settings-daemon needs it.
 
 	  https://gitlab.gnome.org/GNOME/gnome-desktop
