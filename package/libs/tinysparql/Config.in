@@ -7,6 +7,7 @@ config BR2_PACKAGE_TINYSPARQL
 	select BR2_PACKAGE_JSON_GLIB
 	select BR2_PACKAGE_LIBSOUP3
 	select BR2_PACKAGE_SQLITE
+	select BR2_PACKAGE_SQLITE_ENABLE_FTS5 # refuses to build without it
 	select BR2_PACKAGE_ICU
 	help
 	  SPARQL triple store (the library formerly known as tracker);

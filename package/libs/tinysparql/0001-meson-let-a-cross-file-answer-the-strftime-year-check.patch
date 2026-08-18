@@ -1,0 +1,44 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] meson: let a cross file answer the strftime year check
+
+meson.build finds the strftime modifier that prints a four-digit year by
+compiling a probe and running it. The FTS5 check just above it already
+knows a cross build cannot do that and reads sqlite3_has_fts5 from the
+cross file's [properties] instead; the strftime probe has no such escape
+and configure stops:
+
+  meson.build:188:23: ERROR: Can not run test applications in this cross
+  environment.
+
+Give it the same escape: when cross compiling without an exe_wrapper,
+take strftime_year_modifier from the cross file, and fail with a message
+naming the property (and the answer for glibc and musl, %4Y) if it is
+missing. A native build is untouched.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/meson.build
++++ b/meson.build
+@@ -185,6 +185,14 @@
+ ##################################################################
+ # Get an appropriate 4-digit year modifier for strftime
+ ##################################################################
++# Like sqlite3_has_fts5 above: a cross build cannot run the probe, so it
++# takes the answer from the [properties] section of the cross file instead.
++if meson.is_cross_build() and not meson.has_exe_wrapper()
++  year_modifier = meson.get_cross_property('strftime_year_modifier', '')
++  if year_modifier == ''
++    error('Please assign an appropriate value for strftime_year_modifier in the [properties] section of your crossfile (glibc and musl: %4Y)')
++  endif
++else
+ result = cc.run('''
+   #define _TIME_BITS 64
+   #define _GNU_SOURCE
+@@ -216,6 +224,7 @@
+ else
+   year_modifier = result.stdout()
+ endif
++endif
+ 
+ ##################################################################
+ # Check for libtracker-data and libtracker-fts: Unicode support
