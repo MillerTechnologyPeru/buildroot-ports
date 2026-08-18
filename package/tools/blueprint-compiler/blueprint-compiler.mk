@@ -32,4 +32,35 @@ HOST_BLUEPRINT_COMPILER_DEPENDENCIES = host-python3 host-python-pygobject
 # host build.
 HOST_BLUEPRINT_COMPILER_CONF_OPTS = -Ddocs=false
 
+# blueprint-compiler resolves every widget name against a GIR typelib. It runs
+# on the build machine, so on its own it searches HOST_DIR/lib/girepository-1.0
+# - where there is no Gtk, only the host's own GLib and GIRepository - and any
+# .blp that names a Gtk widget fails:
+#
+#   error: Namespace Gtk was not imported
+#     23 |      ShortcutsShortcut {
+#        |      ^^^^^^^^^^^^^^^^^
+#
+# Gtk-4.0.typelib and Adw-1.typelib are the target's, in the staging sysroot.
+# GI_TYPELIB_PATH prepends to the search path rather than replacing it, so the
+# host typelibs the compiler also needs stay reachable, and reading a typelib
+# is metadata only - nothing dlopen()s the target libraries it describes.
+#
+# Rather than have every package with a .blp set that variable in its own
+# NINJA_ENV, the installed entrypoint is wrapped to set it: it is a build
+# tool for target packages, and the target typelibs are the only ones it
+# will ever be asked about here.
+define HOST_BLUEPRINT_COMPILER_WRAP_FOR_TARGET_TYPELIBS
+	mv $(HOST_DIR)/bin/blueprint-compiler $(HOST_DIR)/bin/blueprint-compiler.real
+	printf '%s\n' \
+		'#!/bin/sh' \
+		'# See blueprint-compiler.mk: point the compiler at the target typelibs.' \
+		'GI_TYPELIB_PATH="$(STAGING_DIR)/usr/lib/girepository-1.0$${GI_TYPELIB_PATH:+:$$GI_TYPELIB_PATH}"' \
+		'export GI_TYPELIB_PATH' \
+		'exec "$$(dirname "$$0")/blueprint-compiler.real" "$$@"' \
+		> $(HOST_DIR)/bin/blueprint-compiler
+	chmod 0755 $(HOST_DIR)/bin/blueprint-compiler
+endef
+HOST_BLUEPRINT_COMPILER_POST_INSTALL_HOOKS += HOST_BLUEPRINT_COMPILER_WRAP_FOR_TARGET_TYPELIBS
+
 $(eval $(host-meson-package))
