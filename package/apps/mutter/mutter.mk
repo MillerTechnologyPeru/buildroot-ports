@@ -16,6 +16,13 @@ MUTTER_SITE = https://download.gnome.org/sources/mutter/47
 MUTTER_LICENSE = GPL-2.0+
 MUTTER_LICENSE_FILES = COPYING
 MUTTER_INSTALL_STAGING = YES
+# host-xlib_libxcvt for the cvt program. The native backend runs it at build
+# time, through gen-default-modes.py, to compute the default display modes
+# it compiles in - and the script calls it by name from PATH, so the copy
+# has to run on the build machine:
+#
+#   src/meson.build:1005:8: ERROR: Program 'cvt' not found or not executable
+#
 # startup-notification: -Dstartup_notification=true below, and it applies
 # whenever there are X11 clients - which Xwayland provides even with the
 # native X11 backend off - so meson asks for the library:
@@ -26,7 +33,7 @@ MUTTER_DEPENDENCIES = \
 	host-pkgconf graphene libgtk4 libei libdisplay-info colord lcms2 \
 	libinput libdrm libxkbcommon wayland wayland-protocols pipewire \
 	libwacom elogind gsettings-desktop-schemas xkeyboard-config \
-	host-wayland startup-notification
+	host-wayland host-xlib_libxcvt startup-notification
 
 MUTTER_CONF_OPTS = \
 	-Degl_device=true \
