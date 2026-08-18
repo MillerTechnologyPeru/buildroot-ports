@@ -10,6 +10,7 @@ config BR2_PACKAGE_GNOME_SETTINGS_DAEMON
 	select BR2_PACKAGE_UPOWER
 	select BR2_PACKAGE_POLKIT
 	select BR2_PACKAGE_PULSEAUDIO # libpulse for volume control (gvc)
+	select BR2_PACKAGE_NETWORK_MANAGER # libnm; meson asserts it on Linux
 	help
 	  The GNOME settings daemons (xsettings, power, media keys,
 	  color, keyboard...); gnome-session starts them.
