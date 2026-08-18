@@ -1,0 +1,67 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Take the gjs path from an option when cross compiling
+
+meson.build finds gjs with find_program(), and the only thing done with
+the result outside the test suite is to write its path into the D-Bus
+service files:
+
+    serviceconf.set('gjs', gjs.full_path())
+    Exec=@gjs@ -m @pkgdatadir@/@service@
+
+Those files run on the target, so the path wanted is the target's
+/usr/bin/gjs. Under a cross build find_program() cannot see that binary
+and stops:
+
+    meson.build:141:6: ERROR: Program 'gjs' not found or not executable
+
+and a build-machine gjs, had there been one, would have written the
+wrong path. Add a gjs_path option; when set, use it as-is, and leave
+the native build resolving gjs the way it did.
+
+The find_program() in subprojects/extensions-app is left alone: that
+subproject is behind extensions_app and off here.
+
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -51,3 +51,9 @@
+   value: true,
+   description: 'Enable systemd integration'
+ )
++
++option('gjs_path',
++  type: 'string',
++  value: '',
++  description: 'Path to the gjs interpreter on the target, written into the D-Bus service files. Set when cross compiling, where find_program() cannot see it.'
++)
+--- a/meson.build
++++ b/meson.build
+@@ -138,7 +138,17 @@
+ 
+ mutter_typelibdir = mutter_dep.get_variable('typelibdir')
+ python = find_program('python3')
+-gjs = find_program('gjs')
++# gjs is not run at build time; its path is written into the D-Bus service
++# files (js/dbusServices) as the interpreter for the target to launch.
++# find_program() has to see the binary on the build machine to resolve it,
++# which under a cross build it cannot - and a build-machine gjs would be
++# the wrong path in any case. Take it from an option when given.
++gjs_path = get_option('gjs_path')
++if gjs_path != ''
++  gjs = gjs_path
++else
++  gjs = find_program('gjs').full_path()
++endif
+ 
+ cc = meson.get_compiler('c')
+ 
+--- a/js/dbusServices/meson.build
++++ b/js/dbusServices/meson.build
+@@ -22,7 +22,7 @@
+ 
+   serviceconf = configuration_data()
+   serviceconf.set('service', service)
+-  serviceconf.set('gjs', gjs.full_path())
++  serviceconf.set('gjs', gjs)
+   serviceconf.set('pkgdatadir', pkgdatadir)
+ 
+   configure_file(
