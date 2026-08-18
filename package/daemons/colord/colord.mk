@@ -34,20 +34,31 @@ COLORD_CONF_OPTS = -Dman=false -Ddocs=false -Dbash_completion=false -Dsystemd=fa
 # want - config.h and lib/colord/cd-version.h - are written by configure, so
 # this runs after it.
 #
-# The option is a plain path so meson stores it unchecked at configure time
-# - the binary is compiled by this hook, which runs after configure, and only
-# needs to exist by the time ninja runs it. It stays in the build tree, so
-# nothing about it reaches the host tree or the target.
+# cd-edid.c has to come along after all: cd-icc.c calls the cd_edid_* getters
+# for cd_icc_create_from_edid, so leaving it out fails the link. Its one use
+# of udev - looking a monitor vendor up in the hwdb - is the #ifndef PNP_IDS
+# fallback; with PNP_IDS defined it reads a text file instead and libudev is
+# never called. The #include <libudev.h> is unconditional though, and the
+# host tree has no such header, so an empty one is put on the include path
+# to satisfy it. Nothing here runs the EDID code path; the symbols only have
+# to resolve.
+#
+# The binary is compiled by this hook, which runs after configure so that
+# config.h exists, and only needs to be there by the time ninja runs it. It
+# stays in the build tree, so nothing about it reaches the host tree or the
+# target.
 COLORD_HOST_SRCS = \
-	cd-buffer cd-color cd-context-lcms cd-dom cd-enum cd-icc cd-icc-store \
-	cd-icc-utils cd-interp-akima cd-interp cd-interp-linear cd-it8 \
-	cd-it8-utils cd-math cd-quirk cd-spectrum cd-transform
+	cd-buffer cd-color cd-context-lcms cd-dom cd-edid cd-enum cd-icc \
+	cd-icc-store cd-icc-utils cd-interp-akima cd-interp cd-interp-linear \
+	cd-it8 cd-it8-utils cd-math cd-quirk cd-spectrum cd-transform
 define COLORD_BUILD_HOST_CREATE_PROFILE
-	mkdir -p $(@D)/host-bin
+	mkdir -p $(@D)/host-bin/include
+	: > $(@D)/host-bin/include/libudev.h
 	$(HOST_MAKE_ENV) $(HOSTCC) $(HOST_CFLAGS) \
 		-DCD_COMPILATION -DG_LOG_DOMAIN='"Cd"' \
-		-DLOCALSTATEDIR='"/var"' \
+		-DLOCALSTATEDIR='"/var"' -DPNP_IDS='"/usr/share/hwdata/pnp.ids"' \
 		-DPACKAGE_NAME='"colord"' -DPACKAGE_VERSION='"$(COLORD_VERSION)"' \
+		-I$(@D)/host-bin/include \
 		-I$(@D) -I$(@D)/lib -I$(@D)/lib/colord \
 		-I$(@D)/buildroot-build -I$(@D)/buildroot-build/lib/colord \
 		`$(HOST_MAKE_ENV) $(HOST_DIR)/bin/pkg-config --cflags gio-2.0 gio-unix-2.0 lcms2` \
