@@ -37,6 +37,13 @@ IBUS_INSTALL_STAGING = YES
 # path; a target-relative one keeps the file inside the sysroot. It is a
 # 300-line pure-python shim with no target python to load it, so where it
 # lands does not matter, only that it lands somewhere sane.
+#
+# That option covers pyoverridesdir only. python2 support defaults on as
+# well, and when configure finds no python2 binary it quietly substitutes
+# $PYTHON - the host python3 again - and derives a second, py2overridesdir,
+# from it, with no option to redirect that one. --disable-python2 is what
+# takes the whole py2 override install out; there is nothing for it to
+# serve on a python3-only system in any case.
 IBUS_DEPENDENCIES = host-pkgconf host-python3 libglib2 dconf
 
 # appindicator is the panel-icon integration for desktops that use
@@ -60,6 +67,7 @@ IBUS_CONF_OPTS = \
 	--disable-appindicator \
 	--disable-emoji-dict \
 	--disable-unicode-dict \
+	--disable-python2 \
 	--disable-python-library \
 	--with-python=$(HOST_DIR)/bin/python3 \
 	--with-python-overrides-dir=/usr/lib/python3/dist-packages/gi/overrides
