@@ -12,7 +12,12 @@ GNOME_DESKTOP_LICENSE_FILES = COPYING COPYING.LIB
 GNOME_DESKTOP_INSTALL_STAGING = YES
 GNOME_DESKTOP_DEPENDENCIES = host-pkgconf libgtk4 gdk-pixbuf gsettings-desktop-schemas iso-codes libseccomp xkeyboard-config
 
-GNOME_DESKTOP_CONF_OPTS = -Dgtk_doc=false -Ddesktop_docs=false -Dinstalled_tests=false -Dbuild_gtk4=true -Ddebug_tools=false -Dudev=enabled
+# systemd is a feature defaulting to auto. It used to come out disabled only
+# because libsystemd was absent; elogind now answers to that pkg-config name
+# so gnome-session can build, and this would silently flip on. It gates
+# gnome_start_systemd_scope(), which moves launched apps into transient
+# systemd scopes - meaningless under elogind. Say disabled outright.
+GNOME_DESKTOP_CONF_OPTS = -Dgtk_doc=false -Ddesktop_docs=false -Dinstalled_tests=false -Dbuild_gtk4=true -Ddebug_tools=false -Dudev=enabled -Dsystemd=disabled
 
 # The legacy libgnome-desktop-3.0 is the GTK 3 half of the library, and
 # gnome-settings-daemon 47 still asks for it - alongside gtk+-3.0 - with no

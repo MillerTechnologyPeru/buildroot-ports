@@ -51,4 +51,25 @@ else
 ELOGIND_CONF_OPTS += -Dpam=disabled
 endif
 
+# elogind is built as a drop-in for the parts of libsystemd it implements -
+# sd-login, sd-daemon, sd-bus, and journal stubs - and installs its headers
+# under include/elogind/systemd/ so that #include <systemd/sd-login.h>
+# resolves through its own Cflags. The one thing it does not do is answer to
+# libsystemd's pkg-config name, so a package that asks for that stops dead:
+#
+#   meson.build:124:17: ERROR: Dependency "libsystemd" not found
+#
+# gnome-session 47 takes it as required with no option, and every sd_*
+# symbol it calls (sixteen of them, journal included) is exported by this
+# libelogind. Rather than teach each such package a new name, install a
+# libsystemd.pc beside libelogind.pc that resolves to the same library. It
+# is only written to staging: nothing on the target dlopen()s a .pc file.
+define ELOGIND_INSTALL_LIBSYSTEMD_PC
+	sed -e 's/^Name: elogind$$/Name: libsystemd/' \
+	    -e 's/^Description: .*/Description: elogind, answering for libsystemd/' \
+	    $(STAGING_DIR)/usr/lib/pkgconfig/libelogind.pc \
+	    > $(STAGING_DIR)/usr/lib/pkgconfig/libsystemd.pc
+endef
+ELOGIND_POST_INSTALL_STAGING_HOOKS += ELOGIND_INSTALL_LIBSYSTEMD_PC
+
 $(eval $(meson-package))

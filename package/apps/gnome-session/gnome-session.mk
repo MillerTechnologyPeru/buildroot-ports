@@ -19,11 +19,15 @@ GNOME_SESSION_DEPENDENCIES = \
 
 # systemduserunitdir is set so meson does not go looking for systemd's own
 # pkg-config file to ask where user units belong; it only decides an install
-# path. That does not settle the larger problem: 47's meson.build takes
-# libsystemd as required, and the session sources call sd_journal_send and
-# sd_journal_stream_fd as well as the sd-login and sd-daemon calls elogind
-# does provide. elogind ships libelogind.pc only and has no journal, so this
-# package still needs a decision rather than an option.
+# path.
+#
+# 47's meson.build takes libsystemd as required, with no option. That is
+# satisfied by elogind: this elogind exports every sd_* symbol the session
+# calls - the sd-login and sd-daemon set, and sd_journal_send and
+# sd_journal_stream_fd besides, which it implements as stubs since there is
+# no journal - and its package installs a libsystemd.pc that resolves to
+# libelogind, so meson's lookup by that name succeeds. All sixteen symbols
+# were checked against libelogind.so before relying on this.
 GNOME_SESSION_CONF_OPTS = \
 	-Dsystemduserunitdir=/usr/lib/systemd/user \
 	-Ddocbook=false \
