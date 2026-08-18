@@ -26,6 +26,14 @@ IBUS_INSTALL_STAGING = YES
 # --disable-python-library below keeps the bindings out.
 IBUS_DEPENDENCIES = host-pkgconf host-python3 libglib2 dconf
 
+# appindicator is the panel-icon integration for desktops that use
+# libdbusmenu; it defaults on and requires dbusmenu-glib and dbusmenu-gtk3,
+# neither of which is packaged:
+#
+#   configure: error: Package requirements (dbusmenu-glib-0.4) were not met
+#
+# GNOME shows input sources through gnome-shell's own indicator, not an
+# appindicator, so nothing here wants it.
 IBUS_CONF_OPTS = \
 	--disable-gtk2 \
 	--disable-gtk3 \
@@ -36,6 +44,7 @@ IBUS_CONF_OPTS = \
 	--disable-wayland \
 	--disable-systemd-services \
 	--disable-tests \
+	--disable-appindicator \
 	--disable-emoji-dict \
 	--disable-unicode-dict \
 	--disable-python-library \
