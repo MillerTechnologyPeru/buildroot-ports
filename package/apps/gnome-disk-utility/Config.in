@@ -9,6 +9,7 @@ config BR2_PACKAGE_GNOME_DISK_UTILITY
 	select BR2_PACKAGE_LIBPWQUALITY
 	select BR2_PACKAGE_LIBSECRET
 	select BR2_PACKAGE_LIBDVDREAD
+	select BR2_PACKAGE_ELOGIND # -Dlogind=libelogind
 	help
 	  Disks, the UI over udisks: partitions, formatting, SMART,
 	  images.
