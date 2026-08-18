@@ -13,4 +13,14 @@ GNOME_CONTROL_CENTER_DEPENDENCIES = host-pkgconf libgtk4 libadwaita accountsserv
 
 GNOME_CONTROL_CENTER_CONF_OPTS = -Ddocumentation=false -Dtests=false -Dibus=true -Dsnap=false -Dmalcontent=false
 
+# meson.build checks that polkit's gettext ITS files exist by running
+# build-aux/meson/find_xdg_file.py, which walks XDG_DATA_DIRS on the build
+# machine - a host-side lookup for what is a target file:
+#
+#   ERROR: Command `.../find_xdg_file.py gettext/its/polkit.its` failed
+#
+# The files are in the sysroot; point the search there. Nothing else in
+# configure reads XDG_DATA_DIRS, so this only affects that check.
+GNOME_CONTROL_CENTER_CONF_ENV = XDG_DATA_DIRS=$(STAGING_DIR)/usr/share
+
 $(eval $(meson-package))
