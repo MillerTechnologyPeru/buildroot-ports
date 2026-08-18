@@ -57,4 +57,21 @@ else
 IBUS_CONF_OPTS += --disable-introspection
 endif
 
+# tools/main.c ships pre-generated from main.vala, and it was generated with
+# IBUS_WAYLAND defined - so it calls wl_display_connect() and friends
+# unconditionally, whatever --disable-wayland says, and the link fails for
+# want of libwayland-client:
+#
+#   main.c:(.text+0x1757): undefined reference to `wl_display_connect'
+#
+# The .vala guards that code with #if IBUS_WAYLAND, and valac is in the host
+# tree, but automake only regenerates when the .vala is newer than the .c,
+# and the tarball's timestamps say it is not. Drop the shipped C and the
+# vala stamp so valac runs and the flags actually apply. Only tools/ needs
+# this: ui/gtk3 is behind --disable-ui and engine/ has no wayland code.
+define IBUS_REGENERATE_TOOLS_VALA
+	rm -f $(@D)/tools/main.c $(@D)/tools/krcfile.c $(@D)/tools/ibus_vala.stamp
+endef
+IBUS_POST_PATCH_HOOKS += IBUS_REGENERATE_TOOLS_VALA
+
 $(eval $(autotools-package))
