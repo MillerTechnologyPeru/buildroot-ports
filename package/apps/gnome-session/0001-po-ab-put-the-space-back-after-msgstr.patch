@@ -1,0 +1,25 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] po/ab: put the space back after msgstr
+
+One entry in the Abkhazian translation is written msgstr"..." with no
+space before the string. GNU msgfmt reads it regardless, and that is
+presumably why it was never noticed - but Buildroot's default host
+gettext is gettext-tiny, whose parser insists on the space, and it
+fails the file with no message at all:
+
+    FAILED: [code=253] po/ab/LC_MESSAGES/gnome-session-47.mo
+
+Every other .po in the tree is spelled msgstr "...", so this is a typo,
+not a style. Add the space.
+
+--- a/po/ab.po
++++ b/po/ab.po
+@@ -222,7 +222,7 @@
+ #. Translators: the 'fail whale' is the black dialog we show when something goes seriously wrong
+ #: gnome-session/main.c:412
+ msgid "Show the fail whale dialog for testing"
+-msgstr"Иаашәырԥшы агха иазку ацҳамҭа змоу аиҿцәажәара, уи арҽеиразы "
++msgstr "Иаашәырԥшы агха иазку ацҳамҭа змоу аиҿцәажәара, уи арҽеиразы "
+ 
+ #: gnome-session/main.c:413
+ msgid "Disable hardware acceleration check"
