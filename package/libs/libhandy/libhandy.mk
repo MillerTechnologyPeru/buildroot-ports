@@ -11,7 +11,7 @@ LIBHANDY_SITE = https://download.gnome.org/sources/libhandy/$(LIBHANDY_VERSION_M
 LIBHANDY_LICENSE = LGPL-2.1+
 LIBHANDY_LICENSE_FILES = COPYING
 LIBHANDY_INSTALL_STAGING = YES
-LIBHANDY_DEPENDENCIES = host-pkgconf libgtk3 fribidi
+LIBHANDY_DEPENDENCIES = host-pkgconf libgtk3 libfribidi
 
 # introspection is a feature (enabled/disabled), vapi a boolean.
 LIBHANDY_CONF_OPTS = \
