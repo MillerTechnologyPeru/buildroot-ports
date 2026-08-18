@@ -6,6 +6,11 @@ config BR2_PACKAGE_UDISKS2
 	select BR2_PACKAGE_LIBBLOCKDEV_LOOP
 	select BR2_PACKAGE_LIBBLOCKDEV_PART
 	select BR2_PACKAGE_LIBBLOCKDEV_SWAP
+	# configure hard-requires these three - AC_MSG_ERROR, no --disable -
+	# alongside fs above; the others (lvm2, btrfs) are optional and off.
+	select BR2_PACKAGE_LIBBLOCKDEV_CRYPTO if BR2_TOOLCHAIN_HAS_SYNC_4
+	select BR2_PACKAGE_LIBBLOCKDEV_MDRAID
+	select BR2_PACKAGE_LIBBLOCKDEV_NVME if BR2_USE_MMU
 	select BR2_PACKAGE_LIBATASMART
 	select BR2_PACKAGE_LIBGUDEV
 	select BR2_PACKAGE_POLKIT
