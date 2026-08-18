@@ -15,6 +15,9 @@ config BR2_PACKAGE_GNOME_CONTROL_CENTER
 	select BR2_PACKAGE_UDISKS2
 	select BR2_PACKAGE_LIBKRB5
 	select BR2_PACKAGE_TECLA # keyboard layout previewer, else a wrap fallback
+	# libsmbclient, for the printers panel to browse SMB print shares;
+	# dependency('smbclient') is unconditional there
+	select BR2_PACKAGE_SAMBA4
 	help
 	  Settings (gnome-control-center). The heaviest app of the set:
 	  its panels hard-require cups, NetworkManager/libnma,
