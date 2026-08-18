@@ -1,0 +1,13 @@
+config BR2_PACKAGE_TECLA
+	bool "tecla"
+	depends on BR2_PACKAGE_LIBGTK4
+	select BR2_PACKAGE_LIBADWAITA
+	select BR2_PACKAGE_LIBXKBCOMMON
+	help
+	  Keyboard layout viewer for GNOME. Settings' keyboard panel
+	  launches it to preview a layout, and finds it through the
+	  tecla pkg-config file's app variable; without the package
+	  gnome-control-center falls back to a wrap subproject that a
+	  Buildroot build cannot fetch.
+
+	  https://gitlab.gnome.org/GNOME/tecla

@@ -1,0 +1,4 @@
+# From https://download.gnome.org/sources/tecla/47/tecla-47.0.sha256sum
+sha256  0790b99ec29137a54b546c510661a99aa6f039c8d75f10c08e928682c0804fe5  tecla-47.0.tar.xz
+# Locally computed
+sha256  640d90f6ee401241ff62834d0d1b33f83049e99b8bfdfa04ed1b0a1635dde3e7  LICENSE
