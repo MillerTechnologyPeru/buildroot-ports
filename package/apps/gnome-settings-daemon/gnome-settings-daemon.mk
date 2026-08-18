@@ -15,6 +15,13 @@ GNOME_SETTINGS_DAEMON_SOURCE = gnome-settings-daemon-$(GNOME_SETTINGS_DAEMON_VER
 GNOME_SETTINGS_DAEMON_SITE = https://download.gnome.org/sources/gnome-settings-daemon/47
 GNOME_SETTINGS_DAEMON_LICENSE = GPL-2.0+
 GNOME_SETTINGS_DAEMON_LICENSE_FILES = COPYING
+# gsd installs a pkg-config file and its enum headers under
+# include/gnome-settings-daemon-47/, which gnome-control-center reads:
+#
+#   meson.build:188:21: ERROR: Dependency "gnome-settings-daemon" not found
+#
+# so they have to reach the sysroot, not just the target.
+GNOME_SETTINGS_DAEMON_INSTALL_STAGING = YES
 # network-manager for libnm: gsd's meson.build asserts NetworkManager support
 # on Linux, along with rfkill and ALSA -
 #
