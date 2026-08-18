@@ -18,7 +18,12 @@ GNOME_SOFTWARE_LICENSE_FILES = COPYING
 GNOME_SOFTWARE_DEPENDENCIES = libgtk4 libadwaita flatpak appstream libxmlb \
 	json-glib libsoup3 gsettings-desktop-schemas iso-codes host-pkgconf
 
+# help=false is the 0001 patch's option. See epiphany: yelp is not in this
+# image, so the translated help would be installed with nothing able to
+# display it - and building it needs a host itstool, which Buildroot does
+# not carry.
 GNOME_SOFTWARE_CONF_OPTS = \
+	-Dhelp=false \
 	-Dflatpak=true \
 	-Dpackagekit=false \
 	-Dfwupd=false \
