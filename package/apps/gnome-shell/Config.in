@@ -12,6 +12,7 @@ config BR2_PACKAGE_GNOME_SHELL
 	select BR2_PACKAGE_GNOME_SETTINGS_DAEMON # runtime
 	select BR2_PACKAGE_GNOME_SESSION # runtime
 	select BR2_PACKAGE_ADWAITA_ICON_THEME # runtime
+	select BR2_PACKAGE_GNOME_AUTOAR # gnome-extensions CLI
 	help
 	  The GNOME desktop shell, running as a mutter plugin with its
 	  UI in gjs, with the NetworkManager indicator built in (GNOME

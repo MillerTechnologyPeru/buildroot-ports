@@ -9,10 +9,15 @@ GNOME_SHELL_SOURCE = gnome-shell-$(GNOME_SHELL_VERSION).tar.xz
 GNOME_SHELL_SITE = https://download.gnome.org/sources/gnome-shell/47
 GNOME_SHELL_LICENSE = GPL-2.0+
 GNOME_SHELL_LICENSE_FILES = COPYING
+# gnome-autoar for the extensions-tool subproject - the gnome-extensions CLI,
+# on by default - which unpacks extension bundles with it:
+#
+#   subprojects/extensions-tool/meson.build:32:13: ERROR: Dependency
+#   "gnome-autoar-0" not found
 GNOME_SHELL_DEPENDENCIES = \
 	host-pkgconf mutter gjs gnome-desktop gcr4 evolution-data-server \
 	ibus polkit libgtk4 gsettings-desktop-schemas host-python3 \
-	host-libglib2 network-manager libsecret
+	host-libglib2 network-manager libsecret gnome-autoar
 
 # gjs_path is the 0001 patch's option: gjs is not run at build time, its
 # path is written into the D-Bus service files for the target to launch,
