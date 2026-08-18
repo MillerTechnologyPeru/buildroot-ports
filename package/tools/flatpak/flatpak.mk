@@ -7,6 +7,13 @@
 # polkit system helper: installations are either per-user or done as root,
 # which is how an appliance image administers itself anyway.
 #
+# system_fusermount is the same idea for fusermount3: flatpak only records
+# the path to run at runtime, but with the option unset it looks the program
+# up with find_program(), which cannot see the target's copy from the build
+# machine:
+#
+#   meson.build:194:25: ERROR: Program 'fusermount3' not found
+#
 ################################################################################
 
 FLATPAK_VERSION = 1.18.0
@@ -27,6 +34,7 @@ FLATPAK_CONF_OPTS = \
 	-Dprofile_dir=/etc/profile.d \
 	-Dsystem_bubblewrap=bwrap \
 	-Dsystem_dbus_proxy=xdg-dbus-proxy \
+	-Dsystem_fusermount=/usr/bin/fusermount3 \
 	-Dsystem_helper=disabled \
 	-Dselinux_module=disabled \
 	-Dmalcontent=disabled \
