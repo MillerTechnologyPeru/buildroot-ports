@@ -1,0 +1,46 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Find gdesktop-enums.h through includedir, not prefix
+
+Two panels feed gsettings-desktop-schemas' enum header to
+gnome.mkenums_simple() and locate it by asking pkg-config for prefix and
+appending the rest of the path by hand:
+
+    gsettings_desktop_dep.get_variable(pkgconfig: 'prefix')
+        + '/include/gsettings-desktop-schemas/gdesktop-enums.h'
+
+Under a sysroot that is the wrong variable. A cross pkg-config prefixes
+includedir and libdir with the sysroot but leaves prefix alone - prefix
+is /usr on the target and means nothing on the build machine - so the
+constructed path lands in the build machine's /usr/include, and files()
+rejects it:
+
+    panels/background/meson.build:25:24: ERROR: File
+    /usr/include/gsettings-desktop-schemas/gdesktop-enums.h does not
+    exist.
+
+Ask for includedir instead, which is both what is meant and what the
+sysroot machinery handles. gsettings-desktop-schemas exports it as of
+the patch carried alongside this one.
+
+--- a/panels/background/meson.build
++++ b/panels/background/meson.build
+@@ -23,7 +23,7 @@
+ )
+ 
+ gdesktop_enums_header = files(
+-  gsettings_desktop_dep.get_variable(pkgconfig: 'prefix') + '/include/gsettings-desktop-schemas/gdesktop-enums.h'
++  gsettings_desktop_dep.get_variable(pkgconfig: 'includedir') + '/gsettings-desktop-schemas/gdesktop-enums.h'
+ )
+ 
+ common_sources += gnome.mkenums_simple(
+--- a/panels/system/meson.build
++++ b/panels/system/meson.build
+@@ -68,7 +68,7 @@
+ )
+ 
+ gdesktop_enums_header = files(
+-  gsettings_desktop_dep.get_variable(pkgconfig: 'prefix') + '/include/gsettings-desktop-schemas/gdesktop-enums.h'
++  gsettings_desktop_dep.get_variable(pkgconfig: 'includedir') + '/gsettings-desktop-schemas/gdesktop-enums.h'
+ )
+ 
+ sources += gnome.mkenums_simple(
