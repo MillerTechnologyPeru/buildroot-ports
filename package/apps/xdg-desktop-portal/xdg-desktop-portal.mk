@@ -45,4 +45,25 @@ XDG_DESKTOP_PORTAL_CONF_OPTS = \
 	-Dpytest=disabled \
 	-Dinstalled-tests=false
 
+# The .pc carries an interfaces_dir pointing at the D-Bus interface XML, and
+# both backends generate their GDBus code from files found through it:
+#
+#   ninja: error: '/usr/share/dbus-1/interfaces/org.freedesktop.impl.portal.Access.xml',
+#     needed by 'src/xdg-desktop-portal-dbus.c', missing and no known rule to make it
+#
+# pkg-config only applies PKG_CONFIG_SYSROOT_DIR to the -I and -L flags it
+# emits, never to a --variable query, so meson's get_variable(pkgconfig:
+# 'interfaces_dir') gets the target's absolute path and looks for the XML on
+# the build machine. Point prefix at staging in the staging copy of the .pc,
+# where the XML really is.
+#
+# Safe to rewrite wholesale because this .pc has no Libs: or Cflags: lines at
+# all - it exists only to carry these variables - so nothing's compile or link
+# flags move with it. The target copy is left alone.
+define XDG_DESKTOP_PORTAL_FIX_STAGING_PC_PREFIX
+	$(SED) 's|^prefix=/usr$$|prefix=$(STAGING_DIR)/usr|' \
+		$(STAGING_DIR)/usr/share/pkgconfig/xdg-desktop-portal.pc
+endef
+XDG_DESKTOP_PORTAL_POST_INSTALL_STAGING_HOOKS += XDG_DESKTOP_PORTAL_FIX_STAGING_PC_PREFIX
+
 $(eval $(meson-package))
