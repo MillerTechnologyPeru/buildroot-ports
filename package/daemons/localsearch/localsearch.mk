@@ -23,8 +23,22 @@ LOCALSEARCH_DEPENDENCIES = host-pkgconf tinysparql dbus libgudev icu \
 # modules - a mock volume monitor, extractor stubs - that nothing installs.
 # The suite runs the built binaries against a private session bus, which a
 # cross build cannot do at all.
+#
+# landlock is left off because this kernel does not carry it:
+# sdk/board/x86_64/linux.fragment adds nothing for it and the built config
+# has "# CONFIG_SECURITY_LANDLOCK is not set". Upstream only run-checks the
+# kernel when the option is auto, and a cross build cannot run that probe:
+#
+#   meson.build:158:22: ERROR: Can not run test applications in this cross
+#     environment.
+#
+# Saying "enabled" would skip the probe - upstream's own escape hatch for
+# isolated build environments - but would compile in a sandbox the kernel
+# cannot honour. "disabled" is the answer the probe would have reached: it
+# errors out with "Landlock was auto-enabled in build options, but is
+# disabled in the kernel". The seccomp sandbox is unaffected.
 LOCALSEARCH_CONF_OPTS = -Dman=false -Dbattery_detection=none \
-	-Dfunctional_tests=false -Dsandbox_tests=false
+	-Dfunctional_tests=false -Dsandbox_tests=false -Dlandlock=disabled
 
 # The raw-image extractor; gexiv2 is optional (the option is a feature that
 # defaults to auto) so follow the config rather than force it. nautilus
