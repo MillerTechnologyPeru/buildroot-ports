@@ -1,6 +1,8 @@
 config BR2_PACKAGE_LOCALSEARCH
 	bool "localsearch"
 	depends on BR2_PACKAGE_TINYSPARQL
+	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION
+	select BR2_PACKAGE_LIBGUDEV
 	select BR2_PACKAGE_LIBSECCOMP
 	help
 	  File indexer over tinysparql (formerly tracker-miners);
