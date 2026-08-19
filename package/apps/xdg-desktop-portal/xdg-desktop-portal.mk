@@ -8,6 +8,15 @@ XDG_DESKTOP_PORTAL_VERSION = 1.18.4
 XDG_DESKTOP_PORTAL_SITE = $(call github,flatpak,xdg-desktop-portal,$(XDG_DESKTOP_PORTAL_VERSION))
 XDG_DESKTOP_PORTAL_LICENSE = LGPL-2.1+
 XDG_DESKTOP_PORTAL_LICENSE_FILES = COPYING
+# The backends build against it: meson.build generates an
+# xdg-desktop-portal.pc carrying the interfaces and portal directories, and
+# both xdg-desktop-portal-gnome and -gtk take it as a required dependency.
+# Without staging it lands only in target/usr/share/pkgconfig, where no
+# cross build looks:
+#
+#   src/meson.build:4:25: ERROR: Dependency "xdg-desktop-portal" not found
+#     (tried pkg-config and cmake)
+XDG_DESKTOP_PORTAL_INSTALL_STAGING = YES
 XDG_DESKTOP_PORTAL_DEPENDENCIES = \
 	host-pkgconf libglib2 json-glib libfuse3 pipewire bubblewrap
 
