@@ -50,8 +50,12 @@ HOST_BLUEPRINT_COMPILER_CONF_OPTS = -Ddocs=false
 # NINJA_ENV, the installed entrypoint is wrapped to set it: it is a build
 # tool for target packages, and the target typelibs are the only ones it
 # will ever be asked about here.
+#
+# Guarded on .real: install hooks run on every install, and wrapping an
+# already-wrapped entrypoint would leave it calling itself.
 define HOST_BLUEPRINT_COMPILER_WRAP_FOR_TARGET_TYPELIBS
-	mv $(HOST_DIR)/bin/blueprint-compiler $(HOST_DIR)/bin/blueprint-compiler.real
+	test -f $(HOST_DIR)/bin/blueprint-compiler.real || \
+		mv $(HOST_DIR)/bin/blueprint-compiler $(HOST_DIR)/bin/blueprint-compiler.real
 	printf '%s\n' \
 		'#!/bin/sh' \
 		'# See blueprint-compiler.mk: point the compiler at the target typelibs.' \
