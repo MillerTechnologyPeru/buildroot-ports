@@ -1,0 +1,35 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] libtracker-miners-common: give parse_debug_flags its GThreadFunc argument
+
+parse_debug_flags is passed to g_once, which takes a GThreadFunc:
+
+  typedef gpointer (*GThreadFunc) (gpointer data);
+
+but it is defined with an empty parameter list. Under C17 that means
+"unspecified arguments" and the call compiles; under C23, which this gcc
+defaults to, it means (void), and the types no longer match:
+
+  gthread.h:264:25: error: passing argument 2 of 'g_once_impl' from
+    incompatible pointer type [-Wincompatible-pointer-types]
+    264 |    g_once_impl ((once), (func), (arg)))
+  note: expected 'GThreadFunc' {aka 'void * (*)(void *)'} but argument is
+    of type 'void * (*)(void)'
+
+Name the argument the function has always been called with. The body does
+not use it, and no other caller exists - it is static and reached only
+through the g_once above.
+
+Upstream: https://gitlab.gnome.org/GNOME/localsearch/-/issues
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/src/libtracker-miners-common/tracker-debug.c
++++ b/src/libtracker-miners-common/tracker-debug.c
+@@ -34,7 +34,7 @@
+ #endif /* G_ENABLE_DEBUG */
+ 
+ static gpointer
+-parse_debug_flags ()
++parse_debug_flags (gpointer data)
+ {
+ 	const gchar *env_string;
+ 	guint flags = 0;
