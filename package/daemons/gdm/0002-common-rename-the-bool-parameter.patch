@@ -1,0 +1,57 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] common: rename the bool parameter of parse_value_as_boolean
+
+bool is a keyword in C23, which this gcc defaults to, so a parameter named
+bool no longer parses:
+
+  common/gdm-settings-utils.h:47:77: error: expected ';', ',' or ')' before
+    'bool'
+  common/gdm-settings-utils.c:290:50: error: expected ';', ',' or ')' before
+    'bool'
+
+and every caller then fails for want of a declaration:
+
+  common/gdm-settings-direct.c:159:15: error: implicit declaration of function
+    'gdm_settings_parse_value_as_boolean'
+
+Call it boolval, which is what gdm_settings_parse_boolean_as_value twelve
+lines above already calls its own, and what the neighbouring declarations use
+for their int and double equivalents.
+
+Upstream: https://gitlab.gnome.org/GNOME/gdm/-/issues
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/common/gdm-settings-utils.h
++++ b/common/gdm-settings-utils.h
+@@ -44,7 +44,7 @@
+                                                                 GSList     **list);
+ 
+ gboolean                  gdm_settings_parse_value_as_boolean  (const char *value,
+-                                                                gboolean   *bool);
++                                                                gboolean   *boolval);
+ gboolean                  gdm_settings_parse_value_as_integer  (const char *value,
+                                                                 int        *intval);
+ gboolean                  gdm_settings_parse_value_as_double   (const char *value,
+--- a/common/gdm-settings-utils.c
++++ b/common/gdm-settings-utils.c
+@@ -287,16 +287,16 @@
+ /* adapted from GKeyFile */
+ gboolean
+ gdm_settings_parse_value_as_boolean (const char *value,
+-                                     gboolean   *bool)
++                                     gboolean   *boolval)
+ {
+         g_return_val_if_fail (value != NULL, FALSE);
+-        g_return_val_if_fail (bool != NULL, FALSE);
++        g_return_val_if_fail (boolval != NULL, FALSE);
+ 
+         if (g_ascii_strcasecmp (value, "true") == 0 || strcmp (value, "1") == 0) {
+-                *bool = TRUE;
++                *boolval = TRUE;
+                 return TRUE;
+         } else if (g_ascii_strcasecmp (value, "false") == 0 || strcmp (value, "0") == 0) {
+-                *bool = FALSE;
++                *boolval = FALSE;
+                 return TRUE;
+         } else {
+                 return FALSE;
