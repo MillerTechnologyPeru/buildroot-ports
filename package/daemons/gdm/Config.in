@@ -1,8 +1,17 @@
 config BR2_PACKAGE_GDM
 	bool "gdm"
-	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION
+	# Selected rather than depended on, and the arch/toolchain conditions
+	# mirrored, because a "depends on" here closes a kconfig loop:
+	# waydroid depends on dbus, which polkit selects, which accountsservice
+	# selects, which this selects - and gobject-introspection is selected by
+	# python-gobject, which waydroid selects. Selecting breaks the cycle and
+	# is what waydroid itself does for the same symbol.
+	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION_ARCH_SUPPORTS
+	depends on BR2_USE_MMU
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_4_9
 	depends on BR2_PACKAGE_HAS_UDEV
 	depends on BR2_PACKAGE_LINUX_PAM
+	select BR2_PACKAGE_GOBJECT_INTROSPECTION
 	select BR2_PACKAGE_ACCOUNTSSERVICE
 	select BR2_PACKAGE_LIBGUDEV
 	select BR2_PACKAGE_LIBGLIB2
