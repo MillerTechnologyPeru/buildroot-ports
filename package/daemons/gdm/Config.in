@@ -1,0 +1,18 @@
+config BR2_PACKAGE_GDM
+	bool "gdm"
+	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION
+	depends on BR2_PACKAGE_HAS_UDEV
+	depends on BR2_PACKAGE_LINUX_PAM
+	select BR2_PACKAGE_ACCOUNTSSERVICE
+	select BR2_PACKAGE_LIBGUDEV
+	select BR2_PACKAGE_LIBGLIB2
+	select BR2_PACKAGE_ELOGIND
+	help
+	  GNOME Display Manager.
+
+	  Selected for libgdm and its Gdm-1.0 typelib, which
+	  gnome-shell's JavaScript imports at startup whether or not
+	  a display manager is in use. The daemon itself is built but
+	  nothing starts it on an autologin image.
+
+	  https://gitlab.gnome.org/GNOME/gdm
