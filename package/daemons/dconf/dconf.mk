@@ -24,7 +24,15 @@ DCONF_CONF_OPTS = \
 #
 #   data/dconf/meson.build:18:4: ERROR: Program 'dconf' not found or not
 #     executable
-HOST_DCONF_DEPENDENCIES = host-pkgconf host-libglib2
+#
+# host-dbus is only there for its pkg-config file: meson.build asks dbus-1
+# where session bus service files belong,
+#
+#   dependency('dbus-1').get_pkgconfig_variable('session_bus_services_dir', ...)
+#
+# and stops if it cannot find it, even though a host build installs no such
+# file and only the "dconf compile" command is wanted here.
+HOST_DCONF_DEPENDENCIES = host-pkgconf host-libglib2 host-dbus
 
 HOST_DCONF_CONF_OPTS = \
 	-Dbash_completion=false \
