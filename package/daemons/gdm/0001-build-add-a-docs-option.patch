@@ -1,0 +1,42 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] build: add a docs option
+
+docs/meson.build starts with find_program('itstool'), and subdir('docs') is
+not conditional, so a build with no itstool on the machine stops at configure:
+
+  docs/meson.build:1:6: ERROR: Program 'itstool' not found or not executable
+
+Every other optional part of the tree can be switched off - xdmcp, plymouth,
+selinux, libaudit, x11-support, wayland-support - but the manual cannot, so a
+build that wants only libgdm has to bring in a documentation toolchain to get
+it.
+
+Add a docs option, defaulting true so nothing changes for anyone building the
+whole thing.
+
+Upstream: https://gitlab.gnome.org/GNOME/gdm/-/issues
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -6,6 +6,7 @@
+ option('defaults-conf', type: 'string', value: '', description: 'Filename to give to defaults file.')
+ option('distro', type: 'string', value: 'none', description: 'Distribution name, used to detect PAM files and hook scripts.')
+ option('dmconfdir', type: 'string', value: '', description: 'Directory where sessions are stored.')
++option('docs', type: 'boolean', value: true, description: 'Build the documentation, which needs itstool.')
+ option('gdm-xsession', type: 'boolean', value: false, description: 'Enable installing the gdm Xsession file.')
+ option('gnome-settings-daemon-dir', type: 'string', value: '', description: 'Specify the directory of gnome-settings-daemon used by the chooser.')
+ option('group', type: 'string', value: 'gdm', description: 'GDM\'s group.')
+--- a/meson.build
++++ b/meson.build
+@@ -323,7 +323,9 @@
+ if have_xdmcp
+   subdir('chooser')
+ endif
+-subdir('docs')
++if get_option('docs')
++  subdir('docs')
++endif
+ 
+ gnome.post_install(
+   glib_compile_schemas: true,

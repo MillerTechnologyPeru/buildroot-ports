@@ -60,6 +60,7 @@ GDM_CONF_OPTS = \
 	-Dwayland-support=true \
 	-Dgdm-xsession=false \
 	-Ddefault-pam-config=none \
+	-Ddocs=false \
 	-Dsystemdsystemunitdir=no \
 	-Dsystemduserunitdir=no
 
