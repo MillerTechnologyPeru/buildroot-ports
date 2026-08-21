@@ -45,7 +45,24 @@ ELOGIND_CONF_OPTS = \
 # login path, logind knows no sessions and a compositor cannot attach.
 # The GNOME frontend fragment enables linux-pam; elogind follows it.
 ifeq ($(BR2_PACKAGE_LINUX_PAM),y)
-ELOGIND_CONF_OPTS += -Dpam=enabled -Dpamlibdir=/lib/security
+# /usr/lib/security, not /lib/security: linux-pam does not override its
+# securedir, so with --prefix=/usr its modules install there, and that is the
+# only directory it searches for a module named without a path. Installing
+# beside it is not optional - /lib is a real directory here, not a symlink
+# into /usr, because BR2_ROOTFS_MERGED_USR is off.
+#
+# The session line in /etc/pam.d/login is "optional", so getting this wrong
+# does not fail the login; it logs and carries on with the session never
+# registered:
+#
+#   login: PAM unable to dlopen(/usr/lib/security/pam_elogind.so):
+#     cannot open shared object file: No such file or directory
+#   login: PAM adding faulty module: /usr/lib/security/pam_elogind.so
+#
+# which surfaces much later as the compositor refusing to start:
+#
+#   Failed to setup: Could not get session ID: User 1000 has no sessions
+ELOGIND_CONF_OPTS += -Dpam=enabled -Dpamlibdir=/usr/lib/security
 ELOGIND_DEPENDENCIES += linux-pam
 else
 ELOGIND_CONF_OPTS += -Dpam=disabled
