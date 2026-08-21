@@ -31,9 +31,12 @@ GDM_LICENSE = GPL-2.0+
 GDM_LICENSE_FILES = COPYING
 # Installed to staging for the Gdm-1.0 typelib and libgdm itself.
 GDM_INSTALL_STAGING = YES
+# host-dconf for "dconf compile": data/dconf/meson.build builds the greeter's
+# settings database with it at configure time, whether or not the greeter is
+# ever used.
 GDM_DEPENDENCIES = \
-	host-pkgconf host-gobject-introspection accountsservice libgudev \
-	libglib2 udev elogind linux-pam gobject-introspection
+	host-pkgconf host-gobject-introspection host-dconf accountsservice \
+	libgudev libglib2 udev elogind linux-pam gobject-introspection
 
 # The daemon runs as its own user upstream. Nothing starts it here, but the
 # install still refers to the account, and a package that invents files owned
