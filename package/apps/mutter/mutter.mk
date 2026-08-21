@@ -29,18 +29,42 @@ MUTTER_INSTALL_STAGING = YES
 #
 #   meson.build:310:32: ERROR: Dependency "libstartup-notification-1.0"
 #   not found
+# xlib_libICE and xlib_libSM are what the session registration below is made
+# of, and libxcb/libxkbcommon/xlib_libXtst cover the rest of what -Dx11=true
+# asks for beyond the Xwayland set. All of them are in the tree already,
+# brought in by Xwayland support, but a dependency that only holds because
+# something else pulled it in is not one.
 MUTTER_DEPENDENCIES = \
 	host-pkgconf graphene libgtk4 libei libdisplay-info colord lcms2 \
 	libinput libdrm libxkbcommon wayland wayland-protocols pipewire \
 	libwacom elogind gsettings-desktop-schemas xkeyboard-config \
-	host-wayland host-xlib_libxcvt startup-notification
+	host-wayland host-xlib_libxcvt startup-notification \
+	xlib_libICE xlib_libSM xlib_libXtst libxcb
 
+# x11=true is not about running mutter as an X11 window manager: this image is
+# Wayland only and launches it with --wayland. It is about
+# meta_context_main_notify_ready(), which registers the compositor with
+# gnome-session over XSMP and sits inside #ifdef HAVE_X11:
+#
+#   if (!context_main->options.sm.disable)
+#     meta_session_init (context, ...);
+#
+# With x11=false that call is compiled out, so the shell never registers and
+# gnome-session gives up on it after its timeout:
+#
+#   WARNING: Application 'org.gnome.Shell.desktop' failed to register before
+#     timeout
+#   gsm-manager.c:283:on_required_app_failure: Unrecoverable failure in
+#     required component org.gnome.Shell.desktop
+#
+# which is the "Oh no! Something has gone wrong." screen, with the shell itself
+# running perfectly well behind it.
 MUTTER_CONF_OPTS = \
 	-Degl_device=true \
 	-Dnative_backend=true \
 	-Dwayland=true \
 	-Dxwayland=true \
-	-Dx11=false \
+	-Dx11=true \
 	-Dudev=true \
 	-Dsystemd=false \
 	-Dlibgnome_desktop=false \
