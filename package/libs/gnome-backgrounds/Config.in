@@ -1,0 +1,10 @@
+config BR2_PACKAGE_GNOME_BACKGROUNDS
+	bool "gnome-backgrounds"
+	help
+	  The default GNOME desktop wallpapers, including the Adwaita
+	  set that gsettings-desktop-schemas names as the default
+	  background. Without them the shell draws a flat colour.
+
+	  About 38MB of images.
+
+	  https://gitlab.gnome.org/GNOME/gnome-backgrounds
