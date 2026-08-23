@@ -19,9 +19,11 @@ config BR2_PACKAGE_GDM
 	help
 	  GNOME Display Manager.
 
-	  Selected for libgdm and its Gdm-1.0 typelib, which
-	  gnome-shell's JavaScript imports at startup whether or not
-	  a display manager is in use. The daemon itself is built but
-	  nothing starts it on an autologin image.
+	  Provides the greeter that authenticates the user, and libgdm
+	  with its Gdm-1.0 typelib, which gnome-shell's JavaScript
+	  imports at startup whether or not a display manager runs.
+
+	  Screen locking needs it: gnome-shell disables locking when
+	  there is no display manager to return to.
 
 	  https://gitlab.gnome.org/GNOME/gdm

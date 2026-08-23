@@ -17,10 +17,14 @@
 # mention gdm at all - so this only shows up at runtime, after mutter has
 # already come up and announced itself.
 #
-# GDM has no option to build the library alone, so the daemon is built and
-# installed with it. That is harmless here: no init script starts it, and this
-# image logs in through agetty autologin instead (see the tty1 hook in
-# sdk/board/common/rootfs-overlay/etc/profile.d/sway.sh).
+# The daemon is now used, not merely tolerated. S90gdm starts it on images
+# that ship it, and the GNOME frontend no longer autologins: the greeter
+# authenticates the user, which is also what makes screen locking work -
+# gnome-shell disables locking outright when there is no display manager.
+#
+# PAM comes from the overlay rather than from GDM's own profiles. Every
+# pam-* set upstream ships includes system-auth and system-session, which
+# this image does not have.
 #
 ################################################################################
 
@@ -60,6 +64,7 @@ GDM_CONF_OPTS = \
 	-Dwayland-support=true \
 	-Dgdm-xsession=false \
 	-Ddefault-pam-config=none \
+	-Dinitial-vt=7 \
 	-Ddocs=false \
 	-Dsystemdsystemunitdir=no \
 	-Dsystemduserunitdir=no
