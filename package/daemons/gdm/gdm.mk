@@ -42,10 +42,22 @@ GDM_DEPENDENCIES = \
 	host-pkgconf host-gobject-introspection host-dconf accountsservice \
 	libgudev libglib2 udev elogind linux-pam gobject-introspection
 
-# The daemon runs as its own user upstream. Nothing starts it here, but the
-# install still refers to the account, and a package that invents files owned
-# by a user the image does not have is worse than one that declares it.
-GDM_USERS = gdm -1 gdm -1 * /var/lib/gdm - - GNOME Display Manager
+# The daemon runs as its own user upstream, and the account owns files the
+# install refers to, so the package declares it rather than inventing files
+# owned by a user the image does not have.
+#
+# The home is the state directory on the data partition, not /var/lib/gdm.
+# An image with a read-only root points /var/lib/gdm at /data/lib/gdm with an
+# absolute symlink, and mkusers creates a user's home with "mkdir -p" against
+# the target tree: an absolute symlink resolves outside that tree, so it would
+# either escape into the build host or, when the target does not exist there,
+# stop the image build with
+#
+#   mkdir: cannot create directory '.../target//var/lib/gdm': File exists
+#
+# Naming the real path keeps that inside the target tree, and gives the
+# account a home it can actually write to once the data partition is mounted.
+GDM_USERS = gdm -1 gdm -1 * /data/lib/gdm - - GNOME Display Manager
 
 # logind-provider defaults to systemd, and this image has elogind. The rest
 # is turning off what a library-only consumer does not need: no journal to
