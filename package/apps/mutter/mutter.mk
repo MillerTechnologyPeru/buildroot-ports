@@ -84,4 +84,32 @@ else
 MUTTER_CONF_OPTS += -Dintrospection=false
 endif
 
+# typelibdir names where the typelibs are at runtime, so it has to survive
+# pkg-config as a target path. libmutter-15.pc derives it from libdir, and
+# pkg-config sysroot-prefixes a libdir-derived variable - so a consumer asking
+# for it gets the build machine's staging path. gnome-shell asks, and bakes
+# the answer in as MUTTER_TYPELIB_DIR, which on the target points at a
+# directory that is not there:
+#
+#   JS ERROR: Error: Requiring Meta, version 15: Typelib file for namespace
+#     'Meta', version '15' not found
+#
+# The user session hides this by setting GI_TYPELIB_PATH before it starts the
+# shell. gdm's greeter runs gnome-session directly, with no such wrapper, so
+# there it is fatal and the greeter never comes up.
+#
+# Deriving it from prefix keeps the same value and stops the rewrite: prefix
+# is not sysroot-prefixed. girdir is deliberately left alone - .gir files are
+# read at build time, from staging, and that one wants the rewrite.
+#
+# The API version is the soname series, not MUTTER_VERSION: 47.10 installs
+# libmutter-15.
+MUTTER_API_VERSION = 15
+
+define MUTTER_TYPELIBDIR_IS_A_TARGET_PATH
+	$(SED) 's%^typelibdir=$${libdir}/%typelibdir=$${prefix}/lib/%' \
+		$(STAGING_DIR)/usr/lib/pkgconfig/libmutter-$(MUTTER_API_VERSION).pc
+endef
+MUTTER_POST_INSTALL_STAGING_HOOKS += MUTTER_TYPELIBDIR_IS_A_TARGET_PATH
+
 $(eval $(meson-package))
