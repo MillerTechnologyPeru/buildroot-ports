@@ -65,6 +65,14 @@ GDM_USERS = gdm -1 gdm -1 * /data/lib/gdm - - GNOME Display Manager
 # support on a Wayland-only image. systemdsystemunitdir/systemduserunitdir
 # are set to "no" so meson does not go looking for systemd's pkg-config file
 # to ask where units belong.
+#
+# initial-vt is left at upstream's default of 1, which is what Alpine and
+# postmarketOS ship - both run this daemon under OpenRC with elogind and
+# carry no patch for it. The greeter was put on VT 7 here to stay clear of
+# the console getty, but a greeter is only handed the DRM device once its
+# session is the active one on the seat, and the active VT is the one the
+# getty holds. S90gdm stops that getty instead, which is the arrangement
+# every distribution shipping a display manager already uses.
 GDM_CONF_OPTS = \
 	-Dlogind-provider=elogind \
 	-Dsystemd-journal=false \
@@ -76,7 +84,6 @@ GDM_CONF_OPTS = \
 	-Dwayland-support=true \
 	-Dgdm-xsession=false \
 	-Ddefault-pam-config=none \
-	-Dinitial-vt=7 \
 	-Ddocs=false \
 	-Dsystemdsystemunitdir=no \
 	-Dsystemduserunitdir=no
