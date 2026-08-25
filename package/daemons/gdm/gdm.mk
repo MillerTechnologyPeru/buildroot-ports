@@ -57,7 +57,22 @@ GDM_DEPENDENCIES = \
 #
 # Naming the real path keeps that inside the target tree, and gives the
 # account a home it can actually write to once the data partition is mounted.
-GDM_USERS = gdm -1 gdm -1 * /data/lib/gdm - - GNOME Display Manager
+#
+# The account is in video and input because the greeter is a Wayland
+# compositor. logind hands mutter the KMS device over a file descriptor, so
+# mode setting works without either group - but Mesa opens /dev/dri/card0 by
+# path for itself, and that node is root:video:
+#
+#   libEGL warning: failed to open /dev/dri/card0: Permission denied
+#   libEGL warning: egl: failed to create dri2 screen
+#
+# The compositor then runs with no GL and paints nothing: a greeter that is
+# up, holds the display, and shows a black screen. The session user account
+# is in these groups already, which is why a logged-in session renders and
+# the greeter does not. Distributions that leave the account bare rely on
+# udev's uaccess rules granting the active session an ACL on the device;
+# naming the groups does not depend on that being wired up.
+GDM_USERS = gdm -1 gdm -1 * /data/lib/gdm - video,input GNOME Display Manager
 
 # logind-provider defaults to systemd, and this image has elogind. The rest
 # is turning off what a library-only consumer does not need: no journal to
