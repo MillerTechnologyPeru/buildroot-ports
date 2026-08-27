@@ -1,0 +1,47 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] cmake: do not require NSS when S/MIME is disabled
+
+FindSMIME.cmake searches for NSPR and NSS and stops the configure when it
+cannot find them, regardless of ENABLE_SMIME:
+
+  CMake Error at cmake/modules/FindSMIME.cmake:76 (message):
+    NSPR headers not found.  Use -DWITH_NSPR_INCLUDES=/path/to/nspr to
+    specify the include dir of NSPR.
+
+even though the build passed -DENABLE_SMIME=OFF. The module's own header
+says it should not: "Searches for Mozilla's NSS and NSPR libraries, unless
+-DENABLE_SMIME=OFF is used". ENABLE_SMIME appears exactly once in the file,
+declaring the option, and is then never tested.
+
+It goes unnoticed wherever something else has already put NSPR in the
+sysroot, which is why this only shows up on a tree built from scratch: the
+same configuration succeeded on a long-lived one that happened to carry
+nspr from an earlier build, and failed on a fresh one.
+
+Guard the search with the option the file documents. The three variables
+the module exports are set before the guard, so consumers still see them
+defined and empty when S/MIME is off.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/cmake/modules/FindSMIME.cmake
++++ b/cmake/modules/FindSMIME.cmake
+@@ -26,6 +26,12 @@
+ set(mozilla_nss "")
+ set(MOZILLA_NSS_LIB_DIR "")
+ 
++# Everything below looks for NSPR and NSS and calls FATAL_ERROR when it does
++# not find them, whether or not S/MIME was asked for. The header of this file
++# says otherwise - "unless -DENABLE_SMIME=OFF is used" - and that is the
++# behaviour restored here.
++if(ENABLE_SMIME)
++
+ # Use pkg-config when none is specified
+ if((WITH_NSPR_INCLUDES STREQUAL "") AND (WITH_NSPR_LIBS STREQUAL "") AND (WITH_NSS_INCLUDES STREQUAL "") AND (WITH_NSS_LIBS STREQUAL ""))
+ 	foreach(pkg nspr mozilla-nspr firefox-nspr xulrunner-nspr seamonkey-nspr)
+@@ -154,3 +160,5 @@
+ if(MOZILLA_NSS_LIB_DIR STREQUAL "")
+ 	set(MOZILLA_NSS_LIB_DIR "${LIB_INSTALL_DIR}")
+ endif(MOZILLA_NSS_LIB_DIR STREQUAL "")
++
++endif(ENABLE_SMIME)
