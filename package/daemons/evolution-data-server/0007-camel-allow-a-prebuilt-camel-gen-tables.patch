@@ -1,0 +1,69 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] camel: allow a prebuilt camel-gen-tables
+
+camel-gen-tables is compiled as a target executable and then run during
+the build to generate camel-mime-tables.c. That only works where the
+build and target architectures agree. Cross compiling to aarch64 on an
+x86_64 builder stops here:
+
+  aarch64-binfmt-P: Could not open '/lib/ld-linux-aarch64.so.1': No such
+    file or directory
+  make[3]: *** [src/camel/camel-mime-tables.c] Error 255
+
+This is the same shape as gen-western-table, which already takes
+-DGEN_WESTERN_TABLE=, so give camel-gen-tables the same treatment:
+name a ready-made one with -DCAMEL_GEN_TABLES= and the target
+executable is not built at all. Without it, nothing changes.
+
+The generator needs no libraries - stdio and the configured header -
+so building one for the build machine is a single compile.
+
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+
+--- a/src/camel/CMakeLists.txt
++++ b/src/camel/CMakeLists.txt
+@@ -10,18 +10,36 @@
+ 	camel-url.h
+ )
+ 
+-add_executable(camel-gen-tables
+-	camel-gen-tables.c
+-)
++# camel-gen-tables runs during the build to produce camel-mime-tables.c, so it
++# has to be a program of the build machine. Building it as a target executable
++# only works where the two architectures happen to agree; cross compiling to
++# aarch64 on an x86_64 builder stops here instead:
++#
++#   aarch64-binfmt-P: Could not open '/lib/ld-linux-aarch64.so.1'
++#
++# Accept a ready-made one through CAMEL_GEN_TABLES. When it is not given
++# nothing changes. It needs no libraries - stdio and the configured header -
++# so building one for the host is a single compile.
++if(CAMEL_GEN_TABLES)
++	set(_camel_gen_tables_exe ${CAMEL_GEN_TABLES})
++	set(_camel_gen_tables_dep)
++else(CAMEL_GEN_TABLES)
++	add_executable(camel-gen-tables
++		camel-gen-tables.c
++	)
+ 
+-target_include_directories(camel-gen-tables PUBLIC
+-	${CMAKE_BINARY_DIR}
+-)
++	target_include_directories(camel-gen-tables PUBLIC
++		${CMAKE_BINARY_DIR}
++	)
++
++	set(_camel_gen_tables_exe ${CMAKE_CURRENT_BINARY_DIR}/camel-gen-tables)
++	set(_camel_gen_tables_dep camel-gen-tables)
++endif(CAMEL_GEN_TABLES)
+ 
+ add_custom_command(
+ 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/camel-mime-tables.c
+-	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/camel-gen-tables >${CMAKE_CURRENT_BINARY_DIR}/camel-mime-tables.c
+-	DEPENDS camel-gen-tables
++	COMMAND ${_camel_gen_tables_exe} >${CMAKE_CURRENT_BINARY_DIR}/camel-mime-tables.c
++	DEPENDS ${_camel_gen_tables_dep}
+ )
+ 
+ set(SOURCES

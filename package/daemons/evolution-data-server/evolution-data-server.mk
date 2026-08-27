@@ -90,6 +90,24 @@ endef
 EVOLUTION_DATA_SERVER_PRE_BUILD_HOOKS += EVOLUTION_DATA_SERVER_BUILD_GEN_WESTERN_TABLE
 EVOLUTION_DATA_SERVER_CONF_OPTS += -DGEN_WESTERN_TABLE=$(@D)/gen-western-table.host
 
+# camel-gen-tables is the same problem one directory over: compiled for the
+# target, then run during the build to write camel-mime-tables.c. Where build
+# and target agree it runs by accident; cross compiling to aarch64 it does not
+# run at all -
+#
+#   aarch64-binfmt-P: Could not open '/lib/ld-linux-aarch64.so.1'
+#
+# - which is why this only appeared when an arm64 image was first built from a
+# tree of its own. The generator includes stdio.h and the configured header
+# and nothing else, so no pkg-config dance is needed here.
+define EVOLUTION_DATA_SERVER_BUILD_CAMEL_GEN_TABLES
+	$(HOSTCC) $(HOST_CFLAGS) -I$(@D) \
+		-o $(@D)/camel-gen-tables.host \
+		$(@D)/src/camel/camel-gen-tables.c
+endef
+EVOLUTION_DATA_SERVER_PRE_BUILD_HOOKS += EVOLUTION_DATA_SERVER_BUILD_CAMEL_GEN_TABLES
+EVOLUTION_DATA_SERVER_CONF_OPTS += -DCAMEL_GEN_TABLES=$(@D)/camel-gen-tables.host
+
 # camel uses "bool" as an ordinary identifier - "gint bool = FALSE;" and the
 # reads that follow it - which C23 does not allow, and this gcc defaults to
 # C23:
