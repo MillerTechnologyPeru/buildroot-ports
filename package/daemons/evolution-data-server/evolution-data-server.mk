@@ -16,7 +16,8 @@ EVOLUTION_DATA_SERVER_INSTALL_STAGING = YES
 # GTK4 is on for libedataserverui4, which gnome-calendar links against; the
 # GTK3 UI stays off.
 EVOLUTION_DATA_SERVER_DEPENDENCIES = \
-	host-pkgconf libical libsecret libsoup3 json-glib sqlite icu gcr4 libgtk4
+	host-pkgconf libical libsecret libsoup3 json-glib sqlite icu gcr4 libgtk4 \
+	libnss
 
 EVOLUTION_DATA_SERVER_CONF_OPTS = \
 	-DENABLE_GOA=OFF \

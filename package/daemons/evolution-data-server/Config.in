@@ -7,6 +7,12 @@ config BR2_PACKAGE_EVOLUTION_DATA_SERVER
 	select BR2_PACKAGE_JSON_GLIB
 	select BR2_PACKAGE_SQLITE
 	select BR2_PACKAGE_ICU
+	# camel includes <nspr.h>, nss.h and <ssl.h> unconditionally and
+	# initialises NSS in camel_init(); -DENABLE_SMIME=OFF only drops
+	# camel-smime-context.c from the sources. FindSMIME.cmake is also what
+	# feeds CAMEL_INCLUDE_DIRS the nspr include path, so this is a build
+	# dependency either way.
+	select BR2_PACKAGE_LIBNSS
 	help
 	  Contact/calendar storage services. A gnome-shell hard build
 	  dependency (its calendar reads libecal/libedataserver); built
