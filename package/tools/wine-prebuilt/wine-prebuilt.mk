@@ -16,6 +16,18 @@ WINE_PREBUILT_SITE = https://github.com/Kron4ek/Wine-Builds/releases/download/$(
 WINE_PREBUILT_SOURCE = wine-$(WINE_PREBUILT_VERSION)-amd64-wow64.tar.xz
 WINE_PREBUILT_LICENSE = LGPL-2.1+ (prebuilt upstream release)
 
+# These binaries being the wrong architecture is the point of the package:
+# on aarch64 they are x86-64 on purpose, run through box64. Buildroot's
+# check-bin-arch does not know that and fails the install the first time an
+# arm64 image carries this package -
+#
+#   ERROR: architecture for "/usr/wine/prebuilt/bin/wrc" is "Advanced Micro
+#   Devices X86-64", should be "AArch64"
+#
+# - which no x86_64 image could ever show, since there the architectures
+# happen to agree. Exclude the tree the package owns and nothing else.
+WINE_PREBUILT_BIN_ARCH_EXCLUDE = /usr/wine/prebuilt
+
 define WINE_PREBUILT_EXTRACT_CMDS
 	mkdir -p $(@D)/dist
 	$(XZCAT) $(WINE_PREBUILT_DL_DIR)/$(WINE_PREBUILT_SOURCE) | \
