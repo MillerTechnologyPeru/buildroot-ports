@@ -1,0 +1,43 @@
+Guard EXT2_ECOMPR_FL, which e2fsprogs 1.47.4 no longer defines
+
+e2fsprogs dropped the old ext2 compression error flag; bit 0x800 is
+EXT4_ENCRYPT_FL now, and ext2fs/ext2_fs.h only keeps a comment:
+
+    #define EXT2_NOCOMPR_FL   0x00000400 /* Access raw compressed data */
+            /* nb: was previously EXT2_ECOMPR_FL */
+    #define EXT4_ENCRYPT_FL   0x00000800 /* encrypted inode */
+
+so lib/ext2.c stops at
+
+    lib/ext2.c:144:24: error: 'EXT2_ECOMPR_FL' undeclared (first use in
+    this function); did you mean 'EXT2_COMPR_FL'?
+
+Guard both uses the way the file already guards EXT2_NOCOMPR_FL. Nothing
+sets that flag any more, so dropping the "CompError" property loses
+nothing; mapping it to 0x800 instead would mark encrypted files as
+compression errors.
+
+--- a/xar/lib/ext2.c
++++ b/xar/lib/ext2.c
+@@ -141,8 +141,10 @@
+ 	if(! (flags & ~EXT2_NOCOMPR_FL) )
+ 		x_addprop(f, "NoCompBlock");
+ #endif
++#ifdef EXT2_ECOMPR_FL
+ 	if(! (flags & ~EXT2_ECOMPR_FL) )
+ 		x_addprop(f, "CompError");
++#endif
+ 	if(! (flags & ~EXT2_BTREE_FL) )
+ 		x_addprop(f, "BTree");
+ 	if(! (flags & ~EXT2_INDEX_FL) )
+@@ -230,8 +232,10 @@
+ 	if( e2prop_get(f, "NoCompBlock", (char **)&tmp) == 0 )
+ 		flags |= EXT2_NOCOMPR_FL ;
+ #endif
++#ifdef EXT2_ECOMPR_FL
+ 	if( e2prop_get(f, "CompError", (char **)&tmp) == 0 )
+ 		flags |= EXT2_ECOMPR_FL ;
++#endif
+ 	if( e2prop_get(f, "BTree", (char **)&tmp) == 0 )
+ 		flags |= EXT2_BTREE_FL ;
+ 	if( e2prop_get(f, "HashIndexed", (char **)&tmp) == 0 )
