@@ -61,4 +61,23 @@ define EMULATIONSTATION_LINUX_CONFIG_FIXUPS
 	$(call KCONFIG_ENABLE_OPT,CONFIG_SQUASHFS_ZSTD)
 endef
 
+# The frontend finds its built-in resources (fonts, icons, menu sounds) next
+# to its own executable, which it takes from argv[0] - and the session starts
+# it by bare name, which resolves to nothing. Install the real binary with the
+# resources under /usr/share/emulationstation and put a wrapper on PATH that
+# execs it by absolute path. Without this the frontend has no fonts and draws
+# the system carousel as an empty white band.
+define EMULATIONSTATION_INSTALL_RESOURCES
+	$(INSTALL) -d $(TARGET_DIR)/usr/share/emulationstation
+	mv $(TARGET_DIR)/usr/bin/emulationstation \
+		$(TARGET_DIR)/usr/share/emulationstation/emulationstation
+	rm -rf $(TARGET_DIR)/usr/share/emulationstation/resources
+	cp -a $(@D)/resources $(TARGET_DIR)/usr/share/emulationstation/resources
+	rm -f $(TARGET_DIR)/usr/share/emulationstation/resources/*.py
+	printf '#!/bin/sh\nexec /usr/share/emulationstation/emulationstation "$$@"\n' \
+		> $(TARGET_DIR)/usr/bin/emulationstation
+	chmod 0755 $(TARGET_DIR)/usr/bin/emulationstation
+endef
+EMULATIONSTATION_POST_INSTALL_TARGET_HOOKS += EMULATIONSTATION_INSTALL_RESOURCES
+
 $(eval $(cmake-package))
