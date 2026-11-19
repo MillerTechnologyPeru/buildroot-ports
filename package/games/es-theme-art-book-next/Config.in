@@ -1,0 +1,14 @@
+config BR2_PACKAGE_ES_THEME_ART_BOOK_NEXT
+	bool "es-theme-art-book-next"
+	depends on BR2_PACKAGE_EMULATIONSTATION
+	help
+	  Art Book Next, a theme for EmulationStation: system artwork
+	  and logos, game list layouts for every common aspect ratio
+	  (including the 4:3 and 1:1 handheld panels), and menu
+	  sounds. Without a theme the frontend falls back to its plain
+	  built-in layout of system names.
+
+	  Only the default system artwork set is installed; the other
+	  five sets in the theme add about 250 MB.
+
+	  https://github.com/anthonycaccese/art-book-next-es
