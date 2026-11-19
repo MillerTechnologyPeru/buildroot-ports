@@ -1,0 +1,24 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] sprite: do not assign __dict__ in __cinit__
+
+Cython 3.1 and later reject assigning to a cdef __dict__ slot:
+
+  src_c/cython/pygame/_sprite.pyx:148:12: Illegal use of special attribute
+  __dict__
+
+The assignment is redundant. Declaring "cdef dict __dict__" gives the type a
+dict slot, and Python creates the dict on first attribute access, so Sprite
+instances still take arbitrary attributes without it. pygame 2.6.1 is the
+latest release and still carries the line.
+
+diff --git a/src_c/cython/pygame/_sprite.pyx b/src_c/cython/pygame/_sprite.pyx
+--- a/src_c/cython/pygame/_sprite.pyx
++++ b/src_c/cython/pygame/_sprite.pyx
+@@ -145,7 +145,6 @@ cdef class Sprite:
+     cdef dict __dict__
+ 
+     def __cinit__(self):
+-        self.__dict__ = {}
+         self.__g = set() # The groups the sprite is in
+ 
+     def __init__(self, *groups):
