@@ -1,0 +1,11 @@
+config BR2_PACKAGE_ROMS_HOMEBREW
+	bool "roms-homebrew"
+	help
+	  Freely licensed homebrew games for the consoles the
+	  EmulationStation frontend emulates, so a fresh image has
+	  something to play. The image copies them into the user's ROM
+	  folders on first boot.
+
+	  - Game Boy Color: uCity, a city-building game (GPLv3+ code,
+	    CC BY-SA 4.0 graphics and music).
+	    https://github.com/AntonioND/ucity
