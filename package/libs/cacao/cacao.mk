@@ -11,8 +11,10 @@ CACAO_LICENSE = MIT
 CACAO_LICENSE_FILES = LICENSE
 CACAO_INSTALL_STAGING = YES
 CACAO_SUPPORTS_IN_SOURCE_BUILD = NO
+# host-cacao-macros is not needed to build Cacao; it is here so that whatever
+# builds against Cacao can use the @Entry macro.
 CACAO_DEPENDENCIES = \
-	host-cmake host-ninja host-pkgconf \
+	host-cmake host-ninja host-pkgconf host-cacao-macros \
 	swift swift-foundation silica swift-sdl sdl3 wayland
 
 CACAO_BUILDDIR = $(@D)/build
