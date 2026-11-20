@@ -1,0 +1,3 @@
+# Locally computed; the tarball hash is also the one upstream pins
+sha256  5288b1526325b7dcfa0aba9b52d8e0f3a0b36dec08137513fee3d3927e317020  retroarch-joypads-38cf938bba0adbde375972053068f10d955a9d14.tar.gz
+sha256  13d593901fad682d6e5b4e7f487e865098f6019aa94f8e22c0d8ec80bcdd0dad  COPYING

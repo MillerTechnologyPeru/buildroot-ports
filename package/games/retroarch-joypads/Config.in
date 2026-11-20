@@ -1,0 +1,10 @@
+config BR2_PACKAGE_RETROARCH_JOYPADS
+	bool "retroarch-joypads"
+	depends on BR2_PACKAGE_RETROARCH
+	help
+	  RetroArch controller profiles: libretro's collection plus the
+	  handheld profiles of upstream's distribution, with its Select
+	  hotkeys (Select+Start quits the game, Select+X opens the
+	  menu). Installed to /usr/share/libretro/autoconfig.
+
+	  https://github.com/libretro/retroarch-joypad-autoconfig
