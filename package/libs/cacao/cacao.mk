@@ -5,7 +5,7 @@
 ################################################################################
 
 # Upstream has no releases of the SwiftUI implementation; this is develop.
-CACAO_VERSION = b1e5882a0ac583ad165cee0c2d01d4a0db94bb7e
+CACAO_VERSION = e245c79481eb89c6670b7b208529500c10953ed6
 CACAO_SITE = $(call github,PureSwift,Cacao,$(CACAO_VERSION))
 CACAO_LICENSE = MIT
 CACAO_LICENSE_FILES = LICENSE
