@@ -1,0 +1,30 @@
+From acc7f35ecfc7302514e474d65051d59c41d69433 Mon Sep 17 00:00:00 2001
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Date: Thu, 19 Nov 2026 21:26:47 -0500
+Subject: [PATCH] Imported SwiftCompilerPlugin only where the plugin has an
+ entry point
+
+A plugin library is built against the swift-syntax a toolchain ships,
+which has no SwiftCompilerPlugin module.
+
+Upstream: https://github.com/PureSwift/Cacao/pull/48
+Signed-off-by: Alsey Coleman Miller <alseycmiller@gmail.com>
+---
+ Sources/CacaoMacros/EntryMacro.swift | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Sources/CacaoMacros/EntryMacro.swift b/Sources/CacaoMacros/EntryMacro.swift
+index 78758e0..e549f06 100644
+--- a/Sources/CacaoMacros/EntryMacro.swift
++++ b/Sources/CacaoMacros/EntryMacro.swift
+@@ -5,7 +5,10 @@
+ //  Created by Alsey Coleman Miller on 11/13/26.
+ //
+ 
++// Only a plugin executable has an entry point, which this module provides.
++#if !CACAO_MACROS_LIBRARY
+ import SwiftCompilerPlugin
++#endif
+ import SwiftDiagnostics
+ import SwiftSyntax
+ import SwiftSyntaxMacros
