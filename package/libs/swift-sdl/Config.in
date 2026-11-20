@@ -1,0 +1,18 @@
+config BR2_PACKAGE_SWIFT_SDL
+	bool "swift-sdl"
+	depends on BR2_PACKAGE_SWIFT
+	depends on !BR2_STATIC_LIBS # sdl3
+	depends on BR2_TOOLCHAIN_HAS_THREADS # sdl3
+	select BR2_PACKAGE_SDL3
+	help
+	  The CSDL3 module from PureSwift's SDL package, which lets
+	  Swift code call SDL3 with "import CSDL3".
+
+	  Only the C module is installed (a module map over SDL3's
+	  headers, into the Swift resource directory); the package's
+	  Swift wrappers are not built.
+
+	  https://github.com/PureSwift/SDL
+
+comment "swift-sdl needs the Swift runtime (the buildroot-swift external)"
+	depends on !BR2_PACKAGE_SWIFT
