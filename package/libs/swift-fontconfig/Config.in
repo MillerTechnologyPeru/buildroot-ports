@@ -1,0 +1,17 @@
+config BR2_PACKAGE_SWIFT_FONTCONFIG
+	bool "swift-fontconfig"
+	depends on BR2_PACKAGE_SWIFT
+	select BR2_PACKAGE_SWIFT_FOUNDATION
+	select BR2_PACKAGE_FONTCONFIG
+	select BR2_PACKAGE_FREETYPE
+	help
+	  The FontConfig Swift module from PureSwift: a Swift interface
+	  to fontconfig, for matching fonts by family, weight and slant.
+
+	  Installed into the Swift resource directory, so Swift code
+	  finds it with a plain "import FontConfig".
+
+	  https://github.com/PureSwift/FontConfig
+
+comment "swift-fontconfig needs the Swift runtime (the buildroot-swift external)"
+	depends on !BR2_PACKAGE_SWIFT

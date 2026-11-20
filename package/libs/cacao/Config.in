@@ -1,0 +1,40 @@
+config BR2_PACKAGE_CACAO
+	bool "cacao"
+	depends on BR2_PACKAGE_SWIFT
+	depends on BR2_USE_MMU # silica, cairo
+	depends on !BR2_STATIC_LIBS # sdl3
+	depends on BR2_TOOLCHAIN_HAS_THREADS # sdl3
+	depends on BR2_PACKAGE_WAYLAND
+	select BR2_PACKAGE_SWIFT_FOUNDATION
+	select BR2_PACKAGE_SILICA
+	select BR2_PACKAGE_SWIFT_SDL
+	select BR2_PACKAGE_SDL3
+	help
+	  Cacao is the SwiftUI API implemented in Swift, drawing with
+	  Silica and SDL3. Sources written for SwiftUI compile against
+	  it unchanged, through the SwiftUI and Combine modules it
+	  installs.
+
+	  Its modules (CacaoRender, Cacao, CacaoCompositor, CacaoHost,
+	  CacaoSDL, CacaoScrollPhysics, SwiftUI, Combine) are built as
+	  shared libraries with library evolution and installed into
+	  the Swift resource directory, like the system's own
+	  frameworks.
+
+	  The @Entry macro needs a compiler plugin, which runs on the
+	  build machine and is not built by this package.
+
+	  https://github.com/PureSwift/Cacao
+
+if BR2_PACKAGE_CACAO
+
+config BR2_PACKAGE_CACAO_DEMO
+	bool "install the demo app"
+	help
+	  Install CacaoDemo, a catalog app that exercises Cacao's
+	  controls, lists, shapes, effects, animations and gestures.
+
+endif
+
+comment "cacao needs the Swift runtime (the buildroot-swift external) and wayland"
+	depends on !BR2_PACKAGE_SWIFT || !BR2_PACKAGE_WAYLAND

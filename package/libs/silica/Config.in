@@ -1,0 +1,20 @@
+config BR2_PACKAGE_SILICA
+	bool "silica"
+	depends on BR2_PACKAGE_SWIFT
+	depends on BR2_USE_MMU # cairo
+	select BR2_PACKAGE_SWIFT_FOUNDATION
+	select BR2_PACKAGE_SWIFT_CAIRO
+	select BR2_PACKAGE_SWIFT_FONTCONFIG
+	help
+	  Silica is the Core Graphics API in Swift, drawing with cairo:
+	  CGContext, CGPath, CGImage, CGFont and the UIKit drawing
+	  types.
+
+	  Its Silica and SilicaCairo modules are built as shared
+	  libraries with library evolution and installed into the
+	  Swift resource directory, like the system's own frameworks.
+
+	  https://github.com/PureSwift/Silica
+
+comment "silica needs the Swift runtime (the buildroot-swift external)"
+	depends on !BR2_PACKAGE_SWIFT
