@@ -1,0 +1,12 @@
+config BR2_PACKAGE_LIBRETRO_GENESIS_PLUS_GX
+	bool "libretro-genesis-plus-gx"
+	depends on BR2_PACKAGE_RETROARCH
+	help
+	  Genesis Plus GX libretro core: Sega Mega Drive / Genesis,
+	  Master System, Game Gear and Mega-CD emulation, accurate and
+	  light enough for the low-end handhelds.
+
+	  Its license allows redistribution, but not in a commercial
+	  product or activity.
+
+	  https://github.com/libretro/Genesis-Plus-GX
