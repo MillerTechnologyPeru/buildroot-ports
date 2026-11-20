@@ -56,4 +56,17 @@ FLATPAK_CONF_OPTS = \
 	-Dtests=false \
 	-Dinstalled_tests=false
 
+# Flathub, preconfigured: flatpak adds every remote described in
+# /etc/flatpak/remotes.d to the system installation the next time it opens
+# it, named after the file, and records it as applied - so an installation
+# that already exists gets it too, and one the user removes stays removed.
+# flathub.flatpakrepo is Flathub's own published file
+# (https://dl.flathub.org/repo/flathub.flatpakrepo), carrying its signing
+# key.
+define FLATPAK_INSTALL_FLATHUB_REMOTE
+	$(INSTALL) -D -m 0644 $(FLATPAK_PKGDIR)/flathub.flatpakrepo \
+		$(TARGET_DIR)/etc/flatpak/remotes.d/flathub.flatpakrepo
+endef
+FLATPAK_POST_INSTALL_TARGET_HOOKS += FLATPAK_INSTALL_FLATHUB_REMOTE
+
 $(eval $(meson-package))
