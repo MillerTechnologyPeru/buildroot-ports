@@ -17,4 +17,6 @@ if BR2_PACKAGE_ROMS_HOMEBREW
 	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-roborun/Config.in"
 	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-gothicvania/Config.in"
 	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-2048/Config.in"
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-lutro-pong/Config.in"
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-bass/Config.in"
 endif

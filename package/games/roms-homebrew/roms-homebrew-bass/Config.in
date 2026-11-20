@@ -1,0 +1,10 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_BASS
+	bool "Beneath a Steel Sky (ScummVM)"
+	default y
+	depends on BR2_PACKAGE_LIBRETRO_SCUMMVM
+	help
+	  Beneath a Steel Sky, Revolution Software's 1994 science
+	  fiction adventure, released as freeware for ScummVM. The
+	  floppy version (8.8 MB unpacked).
+
+	  https://www.scummvm.org/games/#games-sky

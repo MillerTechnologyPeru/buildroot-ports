@@ -1,0 +1,8 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_LUTRO_PONG
+	bool "Pong (Lutro)"
+	default y
+	depends on BR2_PACKAGE_LIBRETRO_LUTRO
+	help
+	  Pong for the Lutro Lua game framework.
+
+	  https://github.com/libretro/lutro-pong
