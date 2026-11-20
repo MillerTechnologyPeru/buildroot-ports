@@ -29,19 +29,19 @@ RETROARCH_JOYPADS_SITE = $(call github,libretro,retroarch-joypad-autoconfig,$(RE
 RETROARCH_JOYPADS_LICENSE = MIT (profile collection), GPL-2.0 (handheld profiles)
 RETROARCH_JOYPADS_LICENSE_FILES = COPYING
 
-RETROARCH_JOYPADS_DIR = $(TARGET_DIR)/usr/share/libretro/autoconfig
+RETROARCH_JOYPADS_AUTOCONFIG_DIR = $(TARGET_DIR)/usr/share/libretro/autoconfig
 
 # cp -n: where two driver directories carry a profile of the same name,
 # the first one copied wins. Upstream copies linuxraw first; udev goes
 # first here, because a profile only matches under the joypad driver it
 # names, and RetroArch's driver on this image is udev (see retroarch.mk).
 define RETROARCH_JOYPADS_INSTALL_TARGET_CMDS
-	$(INSTALL) -d $(RETROARCH_JOYPADS_DIR)
+	$(INSTALL) -d $(RETROARCH_JOYPADS_AUTOCONFIG_DIR)
 	for d in udev linuxraw sdl2 x xinput; do \
-		cp -n $(@D)/$$d/*.cfg $(RETROARCH_JOYPADS_DIR)/ || exit 1; \
+		cp -n $(@D)/$$d/*.cfg $(RETROARCH_JOYPADS_AUTOCONFIG_DIR)/ || exit 1; \
 	done
-	cp -f $(RETROARCH_JOYPADS_PKGDIR)/gamepads/*.cfg $(RETROARCH_JOYPADS_DIR)/
-	chmod 0644 $(RETROARCH_JOYPADS_DIR)/*.cfg
+	cp -f $(RETROARCH_JOYPADS_PKGDIR)/gamepads/*.cfg $(RETROARCH_JOYPADS_AUTOCONFIG_DIR)/
+	chmod 0644 $(RETROARCH_JOYPADS_AUTOCONFIG_DIR)/*.cfg
 endef
 
 $(eval $(generic-package))
