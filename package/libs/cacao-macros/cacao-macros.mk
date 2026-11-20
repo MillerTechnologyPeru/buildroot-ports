@@ -8,7 +8,7 @@
 # inside the compiler, so this is a host package: it is built for the build
 # machine, from the same source as the cacao package. Keep the version in
 # step with cacao's.
-CACAO_MACROS_VERSION = b1e5882a0ac583ad165cee0c2d01d4a0db94bb7e
+CACAO_MACROS_VERSION = e245c79481eb89c6670b7b208529500c10953ed6
 CACAO_MACROS_SITE = $(call github,PureSwift,Cacao,$(CACAO_MACROS_VERSION))
 CACAO_MACROS_SOURCE = cacao-$(CACAO_MACROS_VERSION).tar.gz
 CACAO_MACROS_DL_SUBDIR = cacao
