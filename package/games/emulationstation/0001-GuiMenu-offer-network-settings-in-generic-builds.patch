@@ -1,0 +1,87 @@
+From: Alsey Coleman Miller <alseycmiller@gmail.com>
+Subject: [PATCH] GuiMenu: offer network settings in generic builds
+
+The NETWORK SETTINGS entry is only added to the main menu in the
+BATOCERA/ROCKNIX builds, so a generic build never reaches it even when
+the platform ships the wifictl and usbgadget helpers it drives.
+
+Add the entry to the generic menu under the same wifictl check, and
+leave out the rows that assume the upstream distributions' layout:
+the hostname (applied by their boot scripts), the SSH/Samba/HTTP
+switches (systemctl and /storage), and the cloud and VPN services.
+The USB gadget row stays, shown only when /usr/bin/usbgadget exists
+and lists at least one mode, so a machine without a device-mode USB
+port does not get a row with nothing to choose.
+---
+--- a/es-app/src/guis/GuiMenu.cpp
++++ b/es-app/src/guis/GuiMenu.cpp
+@@ -192,6 +192,9 @@
+ 		addEntry(_("SOUND SETTINGS").c_str(), true, [this] { openSoundSettings(); }, "iconSound");
+ 		addEntry(_("GAME COLLECTION SETTINGS").c_str(), true, [this] { openCollectionSystemSettings(); }, "iconAdvanced");
+ 
++		if (ApiSystem::getInstance()->isScriptingSupported(ApiSystem::WIFI))
++			addEntry(_("NETWORK SETTINGS").c_str(), true, [this] { openNetworkSettings(); }, "iconNetwork");
++
+ 		if (!ApiSystem::getInstance()->isScriptingSupported(ApiSystem::GAMESETTINGS))
+ 		{
+ 			for (auto system : SystemData::sSystemVector)
+@@ -5227,7 +5230,7 @@
+ 
+ 	s->addGroup(_("SETTINGS"));
+ 
+-#if !WIN32
++#if !WIN32 && (defined(BATOCERA) || defined(ROCKNIX))
+ 	// Hostname
+ 	s->addInputTextConfigRow(_("HOSTNAME"), "system.hostname", false);
+ #endif
+@@ -5423,6 +5426,7 @@
+ 		openNetworkSettings(false, true);
+ 	});
+ 
++#if defined(BATOCERA) || defined(ROCKNIX)
+ 	// NETWORK SERVICES
+ 	s->addGroup(_("NETWORK SERVICES"));
+ 
+@@ -5478,14 +5482,23 @@
+ 		SystemConf::getInstance()->set("simplehttp.enabled", simplehttpenabled ? "1" : "0");
+ 	});
+ 
++#endif
++
+ 	const std::string usbGadgetScript = "/usr/bin/usbgadget";
++	const std::string usbGadgetOptions = Utils::FileSystem::exists(usbGadgetScript) ?
++		Utils::Platform::GetShOutput(usbGadgetScript + " --options") : "";
++	if (!usbGadgetOptions.empty())
++	{
++#if !defined(BATOCERA) && !defined(ROCKNIX)
++	s->addGroup(_("USB"));
++#endif
+ 	auto optionsUSBGadget = std::make_shared<OptionListComponent<std::string> >(mWindow, _("USB GADGET FUNCTION"), false);
+ 	std::string selectedUSBGadget = std::string(Utils::Platform::GetShOutput(R"(/usr/bin/usbgadget)"));
+ 	if (selectedUSBGadget.empty())
+ 		selectedUSBGadget = "disabled";
+ 
+ 	std::string a;
+-	for(std::stringstream ss(Utils::Platform::GetShOutput(R"(/usr/bin/usbgadget --options)")); getline(ss, a, ' '); ) {
++	for(std::stringstream ss(usbGadgetOptions); getline(ss, a, ' '); ) {
+ 		optionsUSBGadget->add(a, a, a == selectedUSBGadget);
+ 	}
+ 	s->addWithLabel(_("USB GADGET FUNCTION"), optionsUSBGadget);
+@@ -5499,7 +5512,9 @@
+ 			}
+ 		}
+ 	});
++	}
+ 
++#if defined(BATOCERA) || defined(ROCKNIX)
+ 	// CLOUD SERVICES
+ 	s->addGroup(_("CLOUD SERVICES"));
+ 
+@@ -5583,6 +5598,7 @@
+ 		}
+ 		SystemConf::getInstance()->set("zerotier.up", ztEnabled ? "1" : "0");
+ 	});
++#endif
+ 
+ 	mWindow->pushGui(s);
+ }
