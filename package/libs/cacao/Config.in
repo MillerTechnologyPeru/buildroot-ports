@@ -21,8 +21,9 @@ config BR2_PACKAGE_CACAO
 	  the Swift resource directory, like the system's own
 	  frameworks.
 
-	  The @Entry macro needs a compiler plugin, which runs on the
-	  build machine and is not built by this package.
+	  The @Entry macro's compiler plugin is built for the build
+	  machine (host-cacao-macros) and installed beside the host
+	  Swift compiler, which loads it on its own.
 
 	  https://github.com/PureSwift/Cacao
 
