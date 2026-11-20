@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LIBRETRO_BEETLE_PCE_FAST
+	bool "libretro-beetle-pce-fast"
+	depends on BR2_PACKAGE_RETROARCH
+	help
+	  Beetle PCE Fast libretro core (Mednafen's pce_fast): NEC PC
+	  Engine / TurboGrafx-16 and PC Engine CD emulation. HuCard
+	  games need nothing else; CD games need the System Card BIOS
+	  (syscard3.pce) in the RetroArch system directory.
+
+	  https://github.com/libretro/beetle-pce-fast-libretro
