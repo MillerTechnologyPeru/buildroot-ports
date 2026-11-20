@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_ROBORUN
+	bool "RoboRun (NES)"
+	default y
+	help
+	  RoboRun, a platformer, for the NES.
+
+	  https://github.com/heaven-hm/roborun-nes

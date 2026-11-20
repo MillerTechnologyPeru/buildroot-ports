@@ -1,11 +1,20 @@
-config BR2_PACKAGE_ROMS_HOMEBREW
+menuconfig BR2_PACKAGE_ROMS_HOMEBREW
 	bool "roms-homebrew"
 	help
 	  Freely licensed homebrew games for the consoles the
 	  EmulationStation frontend emulates, so a fresh image has
-	  something to play. The image copies them into the user's ROM
-	  folders on first boot.
+	  something to play. Each game is downloaded from its own
+	  published release and installed to
+	  /usr/share/roms-homebrew/<system>/; the image copies them into
+	  the user's ROM folders on first boot.
 
-	  - Game Boy Color: uCity, a city-building game (GPLv3+ code,
-	    CC BY-SA 4.0 graphics and music).
-	    https://github.com/AntonioND/ucity
+	  Each game is its own package, so each keeps its own license
+	  files; all of them are on by default.
+
+if BR2_PACKAGE_ROMS_HOMEBREW
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-ucity/Config.in"
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-runner/Config.in"
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-roborun/Config.in"
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-gothicvania/Config.in"
+	source "$BR2_EXTERNAL_SWIFTLINUXPORTS_PATH/package/games/roms-homebrew/roms-homebrew-2048/Config.in"
+endif

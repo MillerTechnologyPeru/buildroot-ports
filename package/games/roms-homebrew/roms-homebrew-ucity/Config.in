@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_UCITY
+	bool "uCity (Game Boy Color)"
+	default y
+	help
+	  uCity, a city-building game, for the Game Boy Color.
+
+	  https://github.com/AntonioND/ucity

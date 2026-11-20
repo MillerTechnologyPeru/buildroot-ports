@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_GOTHICVANIA
+	bool "Gothicvania (SNES)"
+	default y
+	help
+	  Gothicvania, an action platformer, for the SNES.
+
+	  https://github.com/donth77/snes-homebrew

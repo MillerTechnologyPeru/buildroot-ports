@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_2048
+	bool "2048 (Game Boy)"
+	default y
+	help
+	  2048, the sliding-tile puzzle, for the Game Boy.
+
+	  https://github.com/wyattferguson/2048-gb

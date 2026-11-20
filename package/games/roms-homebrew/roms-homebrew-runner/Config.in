@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ROMS_HOMEBREW_RUNNER
+	bool "Runner (NES)"
+	default y
+	help
+	  Runner, an endless runner, for the NES.
+
+	  https://github.com/zorchenhimer/nes-runner

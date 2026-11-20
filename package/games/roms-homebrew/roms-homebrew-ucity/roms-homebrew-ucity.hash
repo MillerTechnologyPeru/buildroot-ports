@@ -2,6 +2,3 @@
 sha256  9422ee2ca7b7ea1d46b58b2a429fff3f354dfd3e732dee1e7ae6220f148ce6e0  ucity.gbc
 sha256  b715f12604e95f59cbfa9e0900ed296aba3cc334edeed50e92b6be520d84994f  readme.rst
 sha256  8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903  gpl-3.0.txt
-# License files, as extracted
-sha256  b715f12604e95f59cbfa9e0900ed296aba3cc334edeed50e92b6be520d84994f  ucity/readme.rst
-sha256  8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903  ucity/gpl-3.0.txt
