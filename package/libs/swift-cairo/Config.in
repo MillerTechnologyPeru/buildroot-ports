@@ -1,0 +1,23 @@
+config BR2_PACKAGE_SWIFT_CAIRO
+	bool "swift-cairo"
+	depends on BR2_PACKAGE_SWIFT
+	depends on BR2_USE_MMU # cairo
+	select BR2_PACKAGE_SWIFT_FOUNDATION
+	select BR2_PACKAGE_SWIFT_FONTCONFIG
+	select BR2_PACKAGE_CAIRO
+	select BR2_PACKAGE_CAIRO_PNG
+	select BR2_PACKAGE_CAIRO_PDF
+	select BR2_PACKAGE_CAIRO_SVG
+	select BR2_PACKAGE_FREETYPE
+	help
+	  The Cairo Swift module from PureSwift: a Swift interface to
+	  the cairo 2D graphics library, with image, PNG, PDF and SVG
+	  surfaces and FreeType fonts.
+
+	  Installed into the Swift resource directory, so Swift code
+	  finds it with a plain "import Cairo".
+
+	  https://github.com/PureSwift/Cairo
+
+comment "swift-cairo needs the Swift runtime (the buildroot-swift external)"
+	depends on !BR2_PACKAGE_SWIFT
