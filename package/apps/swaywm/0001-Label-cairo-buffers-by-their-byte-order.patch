@@ -1,0 +1,49 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Label cairo buffers by their byte order
+
+sway draws title text, and swaybar, swaynag and swaybg draw everything,
+into CAIRO_FORMAT_ARGB32 surfaces, and label them DRM_FORMAT_ARGB8888 or
+WL_SHM_FORMAT_ARGB8888. cairo's format is a native-endian 32-bit word,
+but DRM and wl_shm formats are defined little-endian, so the two only
+agree on little-endian hosts. On 32-bit PowerPC the compositor reads the
+alpha byte as blue, and title text sits on a purple box.
+
+On a big-endian host the bytes cairo writes are what DRM and wl_shm call
+BGRA8888, so label the buffers that way.
+---
+--- a/client/pool-buffer.c
++++ b/client/pool-buffer.c
+@@ -121,8 +121,15 @@
+ 	}
+ 
+ 	if (!buffer->buffer) {
+-		if (!create_buffer(shm, buffer, width, height,
+-					WL_SHM_FORMAT_ARGB8888)) {
++		// cairo's ARGB32 is a native-endian 32-bit word and wl_shm
++		// formats are little-endian: on a big-endian host cairo's bytes
++		// are BGRA8888.
++#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
++		uint32_t format = WL_SHM_FORMAT_BGRA8888;
++#else
++		uint32_t format = WL_SHM_FORMAT_ARGB8888;
++#endif
++		if (!create_buffer(shm, buffer, width, height, format)) {
+ 			return NULL;
+ 		}
+ 	}
+--- a/sway/sway_text_node.c
++++ b/sway/sway_text_node.c
+@@ -29,7 +29,13 @@
+ 	struct cairo_buffer *buffer = wl_container_of(wlr_buffer, buffer, base);
+ 	*data = cairo_image_surface_get_data(buffer->surface);
+ 	*stride = cairo_image_surface_get_stride(buffer->surface);
++	// cairo's ARGB32 is a native-endian 32-bit word and DRM formats are
++	// little-endian: on a big-endian host cairo's bytes are BGRA8888.
++#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
++	*format = DRM_FORMAT_BGRA8888;
++#else
+ 	*format = DRM_FORMAT_ARGB8888;
++#endif
+ 	return true;
+ }
+ 
