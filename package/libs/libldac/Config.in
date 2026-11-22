@@ -1,9 +1,15 @@
 config BR2_PACKAGE_LIBLDAC
 	bool "libldac"
 	depends on !BR2_STATIC_LIBS
+	# The encoder packs its bitstream little-endian and stops with
+	# "#error unsupported byte order" anywhere else.
+	depends on BR2_ENDIAN = "LITTLE"
 	help
 	  LDAC Bluetooth audio encoder (the open ldacBT packaging of
 	  Sony's codec); PipeWire's bluez plugin detects and uses it
 	  for LDAC-capable headphones.
 
 	  https://github.com/EHfive/ldacBT
+
+comment "libldac needs a little-endian target"
+	depends on BR2_ENDIAN != "LITTLE"
