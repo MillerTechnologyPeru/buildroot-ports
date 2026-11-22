@@ -1,0 +1,74 @@
+From: Swift Linux <noreply@localhost>
+Subject: [PATCH] Fix the big-endian BMP and DDS code
+
+The code under FREEIMAGE_BIGENDIAN is only compiled on big-endian
+targets, and two renames in 3.18.0 left it behind, so the library builds
+everywhere else and fails on PowerPC:
+
+- The BMP writer's bit depth became dst_bpp, but the branches that
+  byte-swap 16-, 24- and 32-bit pixels still test bpp:
+
+    PluginBMP.cpp:1422:28: error: 'bpp' was not declared in this scope
+
+- The DDS header's pixel format member became ddspf, but the header
+  byte-swapper still names ddpfPixelFormat:
+
+    PluginDDS.cpp:359:39: error: 'DDSURFACEDESC2' has no member named
+    'ddpfPixelFormat'
+
+The files have CRLF line endings, and so does this patch.
+---
+--- a/Source/FreeImage/PluginBMP.cpp
++++ b/Source/FreeImage/PluginBMP.cpp
+@@ -1419,7 +1419,7 @@
+ 
+ 			free(buffer);
+ #ifdef FREEIMAGE_BIGENDIAN
+-		} else if (bpp == 16) {
++		} else if (dst_bpp == 16) {
+ 			int padding = dst_pitch - dst_width * sizeof(WORD);
+ 			WORD pad = 0;
+ 			WORD pixel;
+@@ -1440,7 +1440,7 @@
+ 			}
+ #endif
+ #if FREEIMAGE_COLORORDER == FREEIMAGE_COLORORDER_RGB
+-		} else if (bpp == 24) {
++		} else if (dst_bpp == 24) {
+ 			int padding = dst_pitch - dst_width * sizeof(FILE_BGR);
+ 			DWORD pad = 0;
+ 			FILE_BGR bgr;
+@@ -1461,7 +1461,7 @@
+ 					}
+ 				}
+ 			}
+-		} else if (bpp == 32) {
++		} else if (dst_bpp == 32) {
+ 			FILE_BGRA bgra;
+ 			for(unsigned y = 0; y < dst_height; y++) {
+ 				BYTE *line = FreeImage_GetScanLine(dib, y);
+--- a/Source/FreeImage/PluginDDS.cpp
++++ b/Source/FreeImage/PluginDDS.cpp
+@@ -356,14 +356,14 @@
+ 	for(int i=0; i<11; i++) {
+ 		SwapLong(&header->surfaceDesc.dwReserved1[i]);
+ 	}
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwSize);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwFlags);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwFourCC);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwRGBBitCount);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwRBitMask);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwGBitMask);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwBBitMask);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwRGBAlphaBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwSize);
++	SwapLong(&header->surfaceDesc.ddspf.dwFlags);
++	SwapLong(&header->surfaceDesc.ddspf.dwFourCC);
++	SwapLong(&header->surfaceDesc.ddspf.dwRGBBitCount);
++	SwapLong(&header->surfaceDesc.ddspf.dwRBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwGBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwBBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwRGBAlphaBitMask);
+ 	SwapLong(&header->surfaceDesc.ddsCaps.dwCaps1);
+ 	SwapLong(&header->surfaceDesc.ddsCaps.dwCaps2);
+ 	SwapLong(&header->surfaceDesc.ddsCaps.dwReserved[0]);
