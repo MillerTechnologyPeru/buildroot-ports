@@ -4,9 +4,8 @@
 #
 ################################################################################
 
-# Upstream has no releases; this commit is pull request 356's, on its way to master,
-# with every ppc fix.
-PERRY_VERSION = 447245b1d81430fffaa31b1e1483bccf931040f4
+# Upstream has no releases; this is master.
+PERRY_VERSION = abc5095ac14ec5438d35196b8d42ce0a2e6ec36f
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
