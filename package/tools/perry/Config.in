@@ -1,0 +1,65 @@
+config BR2_PACKAGE_PERRY
+	bool "perry"
+	depends on BR2_powerpc # its ppc loader; other architectures to come
+	depends on BR2_PACKAGE_SWIFT
+	depends on !BR2_STATIC_LIBS # sdl3
+	depends on BR2_USE_WCHAR # sdl3
+	depends on BR2_TOOLCHAIN_HAS_THREADS # sdl3, libheif
+	depends on BR2_INSTALL_LIBSTDCPP # libheif
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_10 # libheif
+	depends on !BR2_TOOLCHAIN_HAS_BINUTILS_BUG_30730 # libheif
+	depends on BR2_PACKAGE_OPENBLAS_ARCH_SUPPORTS
+	depends on BR2_USE_MMU # dbus
+	select BR2_PACKAGE_SWIFT_FOUNDATION
+	select BR2_PACKAGE_SDL3
+	select BR2_PACKAGE_CAIRO
+	select BR2_PACKAGE_CAIRO_PNG
+	select BR2_PACKAGE_FONTCONFIG
+	select BR2_PACKAGE_FREETYPE
+	select BR2_PACKAGE_LIBXML2
+	select BR2_PACKAGE_LIBPNG
+	select BR2_PACKAGE_JPEG
+	select BR2_PACKAGE_GIFLIB
+	select BR2_PACKAGE_WEBP
+	select BR2_PACKAGE_LIBHEIF
+	select BR2_PACKAGE_ZLIB
+	select BR2_PACKAGE_BZIP2
+	select BR2_PACKAGE_XZ
+	select BR2_PACKAGE_LZ4
+	select BR2_PACKAGE_BROTLI
+	select BR2_PACKAGE_EXPAT
+	select BR2_PACKAGE_SQLITE
+	select BR2_PACKAGE_OPENBLAS
+	select BR2_PACKAGE_DBUS
+	help
+	  Perry runs Mac programs' Mach-O binaries on Linux natively:
+	  their own code runs on the CPU, and the libraries and
+	  frameworks they call are Linux libraries ("providers")
+	  written mostly in Swift.
+
+	  On 32-bit PowerPC it runs ppc Mac OS X 10.3 to 10.5 programs:
+	  the perry loader, which translates between Darwin's ppc
+	  calling convention and Linux's, and every provider that builds
+	  on Linux (libSystem, libobjc, Foundation, CoreGraphics, AppKit,
+	  Carbon, OpenGL, IOKit, Accelerate and the rest), but
+	  JavaScriptCore's, which needs WebKit. Darwin's Swift runtime and
+	  Perry's Swift overlays are compiled on a Mac and not included.
+	  They are installed in /usr/lib/perry, where perry finds them
+	  beside itself.
+
+	  Building it resolves Perry's Swift package dependencies and
+	  fetches SQLite, lzfse and swift-cmark, so it needs network
+	  access.
+
+	  https://github.com/MillerTechnologyPeru/Perry
+
+comment "perry needs the Swift runtime (the buildroot-swift external)"
+	depends on BR2_powerpc
+	depends on !BR2_PACKAGE_SWIFT
+
+comment "perry needs a toolchain w/ C++, wchar, threads, dynamic library, gcc >= 10"
+	depends on BR2_powerpc
+	depends on BR2_PACKAGE_SWIFT
+	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_USE_WCHAR || \
+		!BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS || \
+		!BR2_TOOLCHAIN_GCC_AT_LEAST_10
