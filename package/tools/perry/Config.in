@@ -2,6 +2,7 @@ config BR2_PACKAGE_PERRY_ARCH_SUPPORTS
 	bool
 	default y if BR2_aarch64 || BR2_x86_64
 	default y if BR2_arm && BR2_ARM_CPU_ARMV7A # perry32
+	default y if BR2_i386 # perry32
 	default y if BR2_powerpc
 
 config BR2_PACKAGE_PERRY
@@ -14,7 +15,6 @@ config BR2_PACKAGE_PERRY
 	depends on BR2_INSTALL_LIBSTDCPP # libheif
 	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_10 # libheif
 	depends on !BR2_TOOLCHAIN_HAS_BINUTILS_BUG_30730 # libheif
-	depends on BR2_PACKAGE_OPENBLAS_ARCH_SUPPORTS
 	depends on BR2_USE_MMU # dbus
 	select BR2_PACKAGE_SWIFT_FOUNDATION
 	select BR2_PACKAGE_SDL3
@@ -35,14 +35,15 @@ config BR2_PACKAGE_PERRY
 	select BR2_PACKAGE_BROTLI
 	select BR2_PACKAGE_EXPAT
 	select BR2_PACKAGE_SQLITE
-	select BR2_PACKAGE_OPENBLAS
+	select BR2_PACKAGE_OPENBLAS if BR2_PACKAGE_OPENBLAS_ARCH_SUPPORTS # Accelerate
 	select BR2_PACKAGE_DBUS
-	# JavaScriptCore's provider, on 64-bit, wherever webkitgtk can be built
-	select BR2_PACKAGE_WEBKITGTK if (BR2_aarch64 || BR2_x86_64) && \
-		BR2_PACKAGE_WEBKITGTK_ARCH_SUPPORTS && BR2_PACKAGE_HAS_LIBEGL && \
-		(BR2_PACKAGE_LIBGTK3 || BR2_PACKAGE_LIBGTK4) && \
-		BR2_TOOLCHAIN_HAS_THREADS_NPTL && BR2_TOOLCHAIN_GCC_AT_LEAST_11 && \
-		BR2_HOST_GCC_AT_LEAST_7 && !BR2_BINFMT_FLAT
+	# JavaScriptCore's provider, and the web views', on 64-bit, wherever
+	# WPE WebKit can be built
+	select BR2_PACKAGE_WPEWEBKIT if (BR2_aarch64 || BR2_x86_64) && \
+		BR2_PACKAGE_WPEWEBKIT_ARCH_SUPPORTS && BR2_PACKAGE_HAS_LIBEGL && \
+		BR2_PACKAGE_HAS_LIBGLES && BR2_TOOLCHAIN_HAS_THREADS_NPTL && \
+		BR2_TOOLCHAIN_GCC_AT_LEAST_11 && BR2_HOST_GCC_AT_LEAST_7 && \
+		!BR2_BINFMT_FLAT
 	help
 	  Perry runs Mac programs' Mach-O binaries on Linux natively:
 	  their own code runs on the CPU, and the libraries and
@@ -56,14 +57,16 @@ config BR2_PACKAGE_PERRY
 
 	  On arm64 and x86_64, perry runs arm64 iOS and Mac programs, and
 	  x86_64 Mac ones, with every provider but Carbon's: JavaScriptCore's
-	  too where webkitgtk can be built (with a GTK and EGL), which it
-	  then selects.
+	  too, over WPE WebKit's JavaScriptCore, where WPE WebKit can be
+	  built (with EGL and GLES), which it then selects.
 
 	  On 32-bit ARM it builds perry32, which runs armv7 iOS programs
 	  as a 32-bit process, with the providers of what iOS 10, the last
-	  iOS to run armv7 programs, has, and nothing else. In
-	  a 32-bit companion it becomes the image's /usr/lib32/perry, and
-	  perry hands armv7 programs to it.
+	  iOS to run armv7 programs, has, and nothing else; on i386,
+	  perry32 for i386 Mac programs, with the providers of what macOS
+	  10.14, the last macOS to run them, has for them (Carbon's and
+	  QuickTime's among them). In a 32-bit companion it becomes the
+	  image's /usr/lib32/perry, and perry hands those programs to it.
 
 	  On 32-bit PowerPC, perry runs ppc Mac OS X 10.3 to 10.5
 	  programs, translating between Darwin's ppc calling convention
