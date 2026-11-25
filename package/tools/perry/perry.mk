@@ -4,9 +4,9 @@
 #
 ################################################################################
 
-# Upstream has no releases; this commit is pull request 419's, on its way to
-# master, which builds JavaScriptCore's provider over WPE WebKit's.
-PERRY_VERSION = 08e79200c17a9a351c96f698cd428bdb124c344b
+# Upstream has no releases; this commit is master's, with JavaScriptCore's
+# provider over WPE WebKit's and its pixels' bytes kept in order on PowerPC.
+PERRY_VERSION = aba6fd86b61ccdd5efe38f508614689c6030b7a3
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
