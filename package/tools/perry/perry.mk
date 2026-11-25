@@ -14,9 +14,7 @@ PERRY_DEPENDENCIES = \
 	sdl3 cairo fontconfig freetype libxml2 libpng jpeg giflib webp libheif \
 	zlib bzip2 xz lz4 brotli expat sqlite openblas dbus
 
-# The providers, built by SwiftPM: every one that builds on Linux, but
-# JavaScriptCore's and WPE WebKit's web extension, which need WebKit, which
-# this package does not build. No Swift: Darwin's Swift runtime and the
+# The providers, built by SwiftPM. No Swift: Darwin's Swift runtime and the
 # frameworks in Perry's Darwin directory (SwiftUI, Combine and the other
 # Swift overlays) are compiled on a Mac; so is armv7's libc++, a Mach-O
 # library linked by Apple's ld64.
@@ -111,11 +109,18 @@ define PERRY_BUILD_LOADER
 endef
 PERRY_LOADER_FILE = $(@D)/.build/loader/perry32
 else
-# 64-bit (arm64, x86_64): arm64 iOS and Mac programs, and x86_64 Mac ones.
-# The loader is SwiftPM's perry.
+# 64-bit (arm64, x86_64): arm64 iOS and Mac programs, and x86_64 Mac ones,
+# with every provider but Carbon's, which is PowerPC's: JavaScriptCore's
+# over webkitgtk's, which perry selects where its own dependencies are met
+# (a GTK, EGL). The loader is SwiftPM's perry.
 PERRY_LOADER = perry
 PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) $(PERRY_PRODUCTS_MAC) PerryLowHeap \
-	PerrySecurity PerryCoreData PerryUIKit PerryMetal PerryModelIO
+	PerrySecurity PerryCoreData PerryUIKit PerryMetal PerryModelIO \
+	PerryWebExtension
+ifeq ($(BR2_PACKAGE_WEBKITGTK),y)
+PERRY_PRODUCTS += PerryJavaScriptCore
+PERRY_DEPENDENCIES += webkitgtk
+endif
 define PERRY_BUILD_LOADER
 	cd $(@D) && $(PERRY_SWIFTPM_ENV) $(PERRY_SWIFTPM) --product perry
 endef
