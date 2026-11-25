@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-# Upstream has no releases; this commit is pull request 404's, on its way to master.
-PERRY_VERSION = a074a1c16c3a31c44243cbe4e2edfede3c4527a0
+# Upstream has no releases; this is master.
+PERRY_VERSION = 0a7dfff33fbef9f25e31c2b648e2d83ba5e6f520
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
@@ -14,37 +14,94 @@ PERRY_DEPENDENCIES = \
 	sdl3 cairo fontconfig freetype libxml2 libpng jpeg giflib webp libheif \
 	zlib bzip2 xz lz4 brotli expat sqlite openblas dbus
 
-# Every provider that builds on Linux, by SwiftPM: all of Perry's but
+# The providers, built by SwiftPM: every one that builds on Linux, but
 # JavaScriptCore's and WPE WebKit's web extension, which need WebKit, which
-# Buildroot doesn't build for PowerPC; Security's, over swift-crypto, whose
-# BoringSSL builds for little-endian machines only ("Unknown target CPU");
-# Core Data's, over CoreModel, whose typed-throws async functions crash Swift
-# 6.4.2's code generation for PowerPC (an assertion in
-# IRGenFunction::createErrorResultSlot); and Metal's and UIKit's, which no
-# PowerPC Mac program calls. Nor Swift: Darwin's Swift runtime and the frameworks in
-# Perry's Darwin directory (SwiftUI, Combine and the other Swift overlays)
-# are compiled on a Mac, and no PowerPC Mac program is written in Swift. The loader,
-# Carbon's provider and the C libraries the providers link (SQLite with
-# Apple's options, lzfse, swift-cmark) are built by Perry's own scripts with
-# the cross compiler.
-PERRY_PRODUCTS = \
+# this package does not build. No Swift: Darwin's Swift runtime and the
+# frameworks in Perry's Darwin directory (SwiftUI, Combine and the other
+# Swift overlays) are compiled on a Mac; so is armv7's libc++, a Mach-O
+# library linked by Apple's ld64.
+PERRY_PRODUCTS_COMMON = \
 	PerrySystem Perryobjc Perrydispatch PerryFoundation Perryxml2 Perryz \
-	PerryCXX PerryStdCXX PerryLowHeap PerryExecShim PerryOpenAL \
-	PerryOpenGL PerryOpenCL Perrysteam_api Perrybz2 PerryBom Perryxar \
-	Perrycurl Perryexpat Perrysqlite3 Perryiconv Perryresolv Perryicucore \
-	Perrycompression PerryCFNetwork \
+	PerryCXX PerryStdCXX PerryExecShim PerryOpenAL Perrybz2 PerryBom \
+	Perryxar Perrycurl Perryexpat Perrysqlite3 Perryiconv Perryresolv \
+	Perryicucore Perrycompression PerryCFNetwork \
 	PerryUniformTypeIdentifiers PerryAccelerate PerryAudioToolbox \
 	PerryUserNotifications PerryAVFoundation PerrySystemConfiguration \
-	PerryNetwork PerryIOKit PerryCoreTelephony PerryStoreKit \
-	PerryVideoToolbox PerryCarPlay PerryCallKit PerryIntents \
-	PerryDeviceCheck PerryWatchConnectivity PerryMetricKit \
-	PerryBackgroundTasks PerryLocalAuthentication PerryPushKit \
-	PerryCoreSpotlight PerryGameKit PerryGameController PerryMediaPlayer \
-	PerryCoreLocation PerryCoreBluetooth PerryCoreWLAN PerryMapKit \
-	PerryMapKitAppKit PerryCloudKit PerryCoreGraphics \
-	PerryQuartzCore PerryAppKit
+	PerryNetwork PerryCoreTelephony PerryStoreKit PerryVideoToolbox \
+	PerryCarPlay PerryCallKit PerryIntents PerryDeviceCheck \
+	PerryWatchConnectivity PerryMetricKit PerryBackgroundTasks \
+	PerryLocalAuthentication PerryPushKit PerryCoreSpotlight PerryGameKit \
+	PerryGameController PerryMediaPlayer PerryCoreLocation \
+	PerryCoreBluetooth PerryCoreWLAN PerryMapKit PerryCloudKit \
+	PerryCoreGraphics PerryQuartzCore
 
-PERRY_PREFIX = $(@D)/.toolchains/ppc-sysroot
+# The Mac's own frameworks, which iOS has not.
+PERRY_PRODUCTS_MAC = \
+	PerryAppKit PerryMapKitAppKit PerryIOKit Perrysteam_api PerryOpenGL \
+	PerryOpenCL
+
+ifeq ($(BR2_powerpc),y)
+# 32-bit PowerPC: PowerPC Mac programs, Mac OS X 10.3 to 10.5. No UIKit,
+# Metal or Model I/O, which none of them calls; no Security, over
+# swift-crypto, whose BoringSSL builds for little-endian machines only
+# ("Unknown target CPU"); and no Core Data, over CoreModel, whose
+# typed-throws async functions crash Swift 6.4.2's code generation for
+# PowerPC (an assertion in IRGenFunction::createErrorResultSlot). The loader,
+# which translates between Darwin's ppc calling convention and Linux's, and
+# Carbon's provider are built by Perry's own scripts.
+PERRY_LOADER = perry
+PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) $(PERRY_PRODUCTS_MAC)
+define PERRY_BUILD_LOADER
+	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-loader.sh
+	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-carbon.sh
+endef
+PERRY_EXTRA_LIBRARIES = $(@D)/.build/ppc/bin/libPerryCarbon.so
+PERRY_LOADER_FILE = $(@D)/.build/ppc/bin/perry
+else ifeq ($(BR2_arm),y)
+# 32-bit ARM: armv7 iOS programs, Objective-C and C only, run as their own
+# 32-bit process, perry32, which perry runs for them: built in the 32-bit
+# companion, whose /usr/lib/perry becomes the image's /usr/lib32/perry, and
+# linked beside perry there (post-build-lib32.sh). iOS's providers only: no
+# Mac frameworks; no LowHeap, a heap above 4 GB; no Metal, which iOS has
+# only on arm64. Darwin's armv7 code treats r9 as scratch, which Linux's
+# keeps across calls, so nothing of Perry's keeps a value in it
+# (-ffixed-r9); and perry32 is linked at a fixed address far above the
+# programs, which are not position independent.
+PERRY_LOADER = perry32
+PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) PerrySecurity PerryCoreData PerryUIKit \
+	PerryModelIO
+PERRY_SWIFTPM_FLAGS = -Xcc -ffixed-r9
+PERRY_LOADER_CFLAGS = -march=armv7-a -mfloat-abi=hard -ffixed-r9
+PERRY_LOADER_SOURCES = \
+	$(wildcard $(@D)/Sources/PerryLoaderCore/*.c) \
+	$(wildcard $(@D)/Sources/PerryLoaderCore/*.S) \
+	$(@D)/Sources/PerryInterface/interface.c \
+	$(wildcard $(@D)/Sources/PerryLoader/*.c)
+define PERRY_BUILD_LOADER
+	mkdir -p $(@D)/.build/loader
+	$(foreach source,$(PERRY_LOADER_SOURCES),
+		$(TARGET_CC) $(PERRY_LOADER_CFLAGS) -fPIC -O1 -g -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
+			-I$(@D)/Sources/PerryLoaderCore/include -I$(@D)/Sources/PerryInterface/include \
+			-c $(source) -o $(@D)/.build/loader/$(notdir $(source)).o
+	)
+	$(TARGET_CC) -no-pie -Wl,-Ttext-segment=0x70000000 \
+		$(foreach source,$(PERRY_LOADER_SOURCES),$(@D)/.build/loader/$(notdir $(source)).o) \
+		-o $(@D)/.build/loader/perry32 -ldl -lpthread
+endef
+PERRY_LOADER_FILE = $(@D)/.build/loader/perry32
+else
+# 64-bit (arm64, x86_64): arm64 iOS and Mac programs, and x86_64 Mac ones.
+# The loader is SwiftPM's perry.
+PERRY_LOADER = perry
+PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) $(PERRY_PRODUCTS_MAC) PerryLowHeap \
+	PerrySecurity PerryCoreData PerryUIKit PerryMetal PerryModelIO
+define PERRY_BUILD_LOADER
+	cd $(@D) && $(PERRY_SWIFTPM_ENV) $(PERRY_SWIFTPM) --product perry
+endef
+PERRY_LOADER_FILE = $(PERRY_SWIFTPM_DIR)/perry
+endif
+
+PERRY_PREFIX = $(@D)/.toolchains/sysroot
 PERRY_SWIFTPM_DIR = $(@D)/.build/release
 
 # The SwiftPM destination file, which a tree seeded from a toolchain release
@@ -63,33 +120,40 @@ PERRY_SWIFTPM_ENV = \
 	PKG_CONFIG_LIBDIR=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig \
 	PKG_CONFIG_PATH=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig
 
+PERRY_SWIFTPM = \
+	$(SWIFT_NATIVE_PATH)/swift build \
+		--build-system native \
+		--destination $(SWIFT_DESTINATION_FILE) \
+		--configuration release \
+		-j $(PARALLEL_JOBS) \
+		-Xcc -I$(PERRY_PREFIX)/usr/include \
+		-Xlinker -L$(PERRY_PREFIX)/usr/lib \
+		$(PERRY_SWIFTPM_FLAGS)
+
+# The C libraries the providers link that Buildroot has no package for, or
+# not built as Perry's are (SQLite with Apple's options, lzfse, swift-cmark),
+# by Perry's script for them, which takes any architecture's cross compiler
+# despite its name.
 define PERRY_BUILD_CMDS
 	cd $(@D) && PATH=$(BR_PATH) PPC_CC=$(TARGET_CC) PPC_PREFIX=$(PERRY_PREFIX) \
 		Scripts/build-ppc-sysroot.sh
-	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-loader.sh
-	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-carbon.sh
+	$(PERRY_BUILD_LOADER)
 	$(foreach product,$(PERRY_PRODUCTS),
-		cd $(@D) && $(PERRY_SWIFTPM_ENV) \
-		$(SWIFT_NATIVE_PATH)/swift build \
-			--build-system native \
-			--destination $(SWIFT_DESTINATION_FILE) \
-			--configuration release \
-			-j $(PARALLEL_JOBS) \
-			--product $(product) \
-			-Xcc -I$(PERRY_PREFIX)/usr/include \
-			-Xlinker -L$(PERRY_PREFIX)/usr/lib
+		cd $(@D) && $(PERRY_SWIFTPM_ENV) $(PERRY_SWIFTPM) --product $(product)
 	)
 endef
 
 # perry finds its providers in its own directory (after
-# PERRY_LIBRARY_PATH), which /proc/self/exe names through the symbolic link.
+# PERRY_LIBRARY_PATH), which /proc/self/exe names through the symbolic
+# link; perry32, in a 32-bit companion, in its own too, which becomes
+# /usr/lib32/perry.
 define PERRY_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/.build/ppc/bin/perry $(TARGET_DIR)/usr/lib/perry/perry
+	$(INSTALL) -D -m 0755 $(PERRY_LOADER_FILE) $(TARGET_DIR)/usr/lib/perry/$(PERRY_LOADER)
 	$(INSTALL) -D -m 0755 -t $(TARGET_DIR)/usr/lib/perry \
-		$(@D)/.build/ppc/bin/libPerryCarbon.so \
+		$(PERRY_EXTRA_LIBRARIES) \
 		$(PERRY_PREFIX)/usr/lib/libperry-sqlite3.so \
 		$(foreach product,$(PERRY_PRODUCTS),$(PERRY_SWIFTPM_DIR)/lib$(product).so)
-	ln -sf ../lib/perry/perry $(TARGET_DIR)/usr/bin/perry
+	ln -sf ../lib/perry/$(PERRY_LOADER) $(TARGET_DIR)/usr/bin/$(PERRY_LOADER)
 endef
 
 $(eval $(generic-package))
