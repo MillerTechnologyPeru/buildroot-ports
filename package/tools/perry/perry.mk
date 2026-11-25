@@ -4,40 +4,22 @@
 #
 ################################################################################
 
-# Upstream has no releases; this is master.
-PERRY_VERSION = 0a7dfff33fbef9f25e31c2b648e2d83ba5e6f520
+# Upstream has no releases; this commit is pull request 419's, on its way to
+# master, which builds JavaScriptCore's provider over WPE WebKit's.
+PERRY_VERSION = 08e79200c17a9a351c96f698cd428bdb124c344b
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
 PERRY_DEPENDENCIES = \
 	host-cmake host-ninja host-pkgconf swift swift-foundation \
 	sdl3 cairo fontconfig freetype libxml2 libpng jpeg giflib webp libheif \
-	zlib bzip2 xz lz4 brotli expat sqlite openblas dbus
+	zlib bzip2 xz lz4 brotli expat sqlite dbus
 
-# The providers, built by SwiftPM. No Swift: Darwin's Swift runtime and the
-# frameworks in Perry's Darwin directory (SwiftUI, Combine and the other
-# Swift overlays) are compiled on a Mac; so is armv7's libc++, a Mach-O
-# library linked by Apple's ld64.
-PERRY_PRODUCTS_COMMON = \
-	PerrySystem Perryobjc Perrydispatch PerryFoundation Perryxml2 Perryz \
-	PerryCXX PerryStdCXX PerryExecShim PerryOpenAL Perrybz2 PerryBom \
-	Perryxar Perrycurl Perryexpat Perrysqlite3 Perryiconv Perryresolv \
-	Perryicucore Perrycompression PerryCFNetwork \
-	PerryUniformTypeIdentifiers PerryAccelerate PerryAudioToolbox \
-	PerryUserNotifications PerryAVFoundation PerrySystemConfiguration \
-	PerryNetwork PerryCoreTelephony PerryStoreKit PerryVideoToolbox \
-	PerryCarPlay PerryCallKit PerryIntents PerryDeviceCheck \
-	PerryWatchConnectivity PerryMetricKit PerryBackgroundTasks \
-	PerryLocalAuthentication PerryPushKit PerryCoreSpotlight PerryGameKit \
-	PerryGameController PerryMediaPlayer PerryCoreLocation \
-	PerryCoreBluetooth PerryCoreWLAN PerryMapKit PerryCloudKit \
-	PerryCoreGraphics PerryQuartzCore
-
-# The Mac's own frameworks, which iOS has not.
-PERRY_PRODUCTS_MAC = \
-	PerryAppKit PerryMapKitAppKit PerryIOKit Perrysteam_api PerryOpenGL \
-	PerryOpenCL
-
+# The providers, built by SwiftPM, for what each architecture's programs
+# call. No Swift: Darwin's Swift runtime and the frameworks in Perry's
+# Darwin directory (SwiftUI, Combine and the other Swift overlays) are
+# compiled on a Mac; so is armv7's libc++, a Mach-O library linked by
+# Apple's ld64.
 ifeq ($(BR2_powerpc),y)
 # 32-bit PowerPC: PowerPC Mac programs, Mac OS X 10.3 to 10.5, so the
 # providers of what Mac OS X 10.5 has and nothing later: no libc++,
@@ -63,20 +45,29 @@ define PERRY_BUILD_LOADER
 endef
 PERRY_EXTRA_LIBRARIES = $(@D)/.build/ppc/bin/libPerryCarbon.so
 PERRY_LOADER_FILE = $(@D)/.build/ppc/bin/perry
-else ifeq ($(BR2_arm),y)
-# 32-bit ARM: armv7 iOS programs, Objective-C and C only, run as their own
-# 32-bit process, perry32, which perry runs for them: built in the 32-bit
-# companion, whose /usr/lib/perry becomes the image's /usr/lib32/perry, and
-# linked beside perry there (post-build-lib32.sh). The providers of what
+else ifeq ($(BR2_arm)$(BR2_i386),y)
+# 32-bit ARM and x86: a 32-bit program runs as its own 32-bit process,
+# perry32, which perry runs for it: built in the 32-bit companion, whose
+# /usr/lib/perry becomes the image's /usr/lib32/perry, and linked beside
+# perry there (post-build-lib32.sh). perry32 is linked at a fixed address
+# far above the programs, which are not position independent.
+PERRY_LOADER = perry32
+PERRY_LOADER_SOURCES = \
+	$(wildcard $(@D)/Sources/PerryLoaderCore/*.c) \
+	$(wildcard $(@D)/Sources/PerryLoaderCore/*.S) \
+	$(@D)/Sources/PerryInterface/interface.c \
+	$(wildcard $(@D)/Sources/PerryLoader/*.c)
+PERRY_C_CFLAGS = -fPIC -O1 -g -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
+	-I$(@D)/Sources/PerryInterface/include
+ifeq ($(BR2_arm),y)
+# armv7 iOS programs, Objective-C and C only, and the providers of what
 # iOS 10, the last iOS to run armv7 programs, has, and nothing else: no Mac
 # frameworks (AppKit, CoreWLAN) or libraries iOS has no API for (libcurl,
 # libxar, Bom); nothing later than iOS 10 (Network, CarPlay, DeviceCheck,
 # MetricKit, BackgroundTasks); no LowHeap, a heap above 4 GB; no Metal,
 # which iOS has only on arm64. Darwin's armv7 code treats r9 as scratch,
 # which Linux's keeps across calls, so nothing of Perry's keeps a value in
-# it (-ffixed-r9); and perry32 is linked at a fixed address far above the
-# programs, which are not position independent.
-PERRY_LOADER = perry32
+# it (-ffixed-r9).
 PERRY_PRODUCTS = \
 	PerrySystem Perryobjc Perrydispatch PerryFoundation PerryCFNetwork \
 	Perryxml2 Perryz Perrybz2 Perryexpat Perrysqlite3 Perryiconv \
@@ -90,41 +81,100 @@ PERRY_PRODUCTS = \
 	PerryWatchConnectivity PerryCoreSpotlight PerryModelIO \
 	PerryLocalAuthentication PerryPushKit
 PERRY_SWIFTPM_FLAGS = -Xcc -ffixed-r9
-PERRY_LOADER_CFLAGS = -march=armv7-a -mfloat-abi=hard -ffixed-r9
-PERRY_LOADER_SOURCES = \
-	$(wildcard $(@D)/Sources/PerryLoaderCore/*.c) \
-	$(wildcard $(@D)/Sources/PerryLoaderCore/*.S) \
-	$(@D)/Sources/PerryInterface/interface.c \
-	$(wildcard $(@D)/Sources/PerryLoader/*.c)
+PERRY_ARCH_CFLAGS = -march=armv7-a -mfloat-abi=hard -ffixed-r9
+else
+# i386 Mac programs, which macOS ran until 10.14, and the providers of what
+# macOS 10.14 has for them, and nothing later or 64-bit only: no Metal,
+# Model I/O, UniformTypeIdentifiers (macOS 11), DeviceCheck, PushKit or
+# the iOS frameworks; no LowHeap, a heap above 4 GB; no JavaScriptCore or
+# web extension, whose WebKit the 32-bit companion does not have. Darwin
+# returns small structures in eax:edx, where Linux's i386 ABI returns them
+# through a pointer (-freg-struct-return). Carbon's and QuickTime's
+# providers are C, built here as Perry's i386 scripts build them.
+PERRY_PRODUCTS = \
+	PerrySystem Perryobjc Perrydispatch PerryFoundation PerryCFNetwork \
+	Perryxml2 Perryz Perrybz2 Perryexpat Perrysqlite3 Perryiconv \
+	Perryresolv Perryicucore Perryxar Perrycurl Perrycompression PerryCXX \
+	PerryStdCXX PerryBom PerryExecShim PerryOpenAL PerryAudioToolbox \
+	PerryAccelerate PerrySystemConfiguration PerryIOKit PerryOpenGL \
+	PerryOpenCL PerryCoreGraphics PerryQuartzCore PerryAppKit \
+	PerrySecurity PerryCoreData PerryAVFoundation PerryVideoToolbox \
+	PerryNetwork PerryUserNotifications PerryGameKit PerryGameController \
+	PerryMediaPlayer PerryCoreLocation PerryCoreBluetooth PerryCoreWLAN \
+	PerryMapKit PerryMapKitAppKit PerryCloudKit PerryStoreKit \
+	PerryLocalAuthentication PerryCoreSpotlight PerryIntents Perrysteam_api
+PERRY_SWIFTPM_FLAGS = -Xcc -freg-struct-return -Xcc -msse2 -Xcc -mfpmath=sse
+PERRY_ARCH_CFLAGS = -march=i686 -msse2 -mfpmath=sse
+PERRY_EXTRA_LIBRARIES = \
+	$(@D)/.build/c/libPerryCarbon.so \
+	$(@D)/.build/c/libPerryQuickTime.so
+define PERRY_BUILD_C_PROVIDERS
+	mkdir -p $(@D)/.build/c
+	$(TARGET_CC) $(PERRY_ARCH_CFLAGS) $(PERRY_C_CFLAGS) -freg-struct-return \
+		-I$(@D)/Sources/PerryCarbon/include -shared \
+		$(wildcard $(@D)/Sources/PerryCarbon/*.c) \
+		-o $(@D)/.build/c/libPerryCarbon.so -lm -lpthread -Wl,-z,defs
+	$(TARGET_CC) $(PERRY_ARCH_CFLAGS) $(PERRY_C_CFLAGS) -freg-struct-return \
+		-I$(@D)/Sources/PerryQuickTime -shared \
+		$(wildcard $(@D)/Sources/PerryQuickTime/*.c) \
+		-o $(@D)/.build/c/libPerryQuickTime.so -lm -lpthread -ldl -Wl,-z,defs
+endef
+endif
 define PERRY_BUILD_LOADER
 	mkdir -p $(@D)/.build/loader
 	$(foreach source,$(PERRY_LOADER_SOURCES),
-		$(TARGET_CC) $(PERRY_LOADER_CFLAGS) -fPIC -O1 -g -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
-			-I$(@D)/Sources/PerryLoaderCore/include -I$(@D)/Sources/PerryInterface/include \
+		$(TARGET_CC) $(PERRY_ARCH_CFLAGS) $(PERRY_C_CFLAGS) \
+			-I$(@D)/Sources/PerryLoaderCore/include \
 			-c $(source) -o $(@D)/.build/loader/$(notdir $(source)).o
 	)
 	$(TARGET_CC) -no-pie -Wl,-Ttext-segment=0x70000000 \
 		$(foreach source,$(PERRY_LOADER_SOURCES),$(@D)/.build/loader/$(notdir $(source)).o) \
 		-o $(@D)/.build/loader/perry32 -ldl -lpthread
+	$(PERRY_BUILD_C_PROVIDERS)
 endef
 PERRY_LOADER_FILE = $(@D)/.build/loader/perry32
 else
 # 64-bit (arm64, x86_64): arm64 iOS and Mac programs, and x86_64 Mac ones,
-# with every provider but Carbon's, which is PowerPC's: JavaScriptCore's
-# over webkitgtk's, which perry selects where its own dependencies are met
-# (a GTK, EGL). The loader is SwiftPM's perry.
+# with every provider but Carbon's, which is PowerPC's. JavaScriptCore's
+# is WPE WebKit's JavaScriptCore, which perry selects where WPE WebKit can
+# be built (EGL, GLES), and which swift-linux's patch makes export its C API
+# and install its headers. The loader is SwiftPM's perry.
 PERRY_LOADER = perry
-PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) $(PERRY_PRODUCTS_MAC) PerryLowHeap \
+PERRY_PRODUCTS = \
+	PerrySystem Perryobjc Perrydispatch PerryFoundation Perryxml2 Perryz \
+	PerryCXX PerryStdCXX PerryExecShim PerryOpenAL Perrybz2 PerryBom \
+	Perryxar Perrycurl Perryexpat Perrysqlite3 Perryiconv Perryresolv \
+	Perryicucore Perrycompression PerryCFNetwork \
+	PerryUniformTypeIdentifiers PerryAccelerate PerryAudioToolbox \
+	PerryUserNotifications PerryAVFoundation PerrySystemConfiguration \
+	PerryNetwork PerryCoreTelephony PerryStoreKit PerryVideoToolbox \
+	PerryCarPlay PerryCallKit PerryIntents PerryDeviceCheck \
+	PerryWatchConnectivity PerryMetricKit PerryBackgroundTasks \
+	PerryLocalAuthentication PerryPushKit PerryCoreSpotlight PerryGameKit \
+	PerryGameController PerryMediaPlayer PerryCoreLocation \
+	PerryCoreBluetooth PerryCoreWLAN PerryMapKit PerryCloudKit \
+	PerryCoreGraphics PerryQuartzCore PerryAppKit PerryMapKitAppKit \
+	PerryIOKit Perrysteam_api PerryOpenGL PerryOpenCL PerryLowHeap \
 	PerrySecurity PerryCoreData PerryUIKit PerryMetal PerryModelIO \
 	PerryWebExtension
-ifeq ($(BR2_PACKAGE_WEBKITGTK),y)
+ifeq ($(BR2_PACKAGE_WPEWEBKIT),y)
 PERRY_PRODUCTS += PerryJavaScriptCore
-PERRY_DEPENDENCIES += webkitgtk
+PERRY_DEPENDENCIES += wpewebkit
+PERRY_SWIFTPM_ENV_EXTRA = PERRY_JAVASCRIPTCORE=wpe
 endif
 define PERRY_BUILD_LOADER
 	cd $(@D) && $(PERRY_SWIFTPM_ENV) $(PERRY_SWIFTPM) --product perry
 endef
 PERRY_LOADER_FILE = $(PERRY_SWIFTPM_DIR)/perry
+endif
+
+# Accelerate's provider is BLAS and LAPACK over OpenBLAS, which Buildroot
+# offers only for the CPUs it has a target for (none for a generic x86 one):
+# without it, no Accelerate.
+ifeq ($(BR2_PACKAGE_OPENBLAS),y)
+PERRY_DEPENDENCIES += openblas
+else
+PERRY_PRODUCTS := $(filter-out PerryAccelerate,$(PERRY_PRODUCTS))
 endif
 
 PERRY_PREFIX = $(@D)/.toolchains/sysroot
@@ -144,7 +194,8 @@ PERRY_SWIFTPM_ENV = \
 	PATH=$(BR_PATH):$(SWIFT_NATIVE_PATH) \
 	PKG_CONFIG_SYSROOT_DIR=$(STAGING_DIR) \
 	PKG_CONFIG_LIBDIR=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig \
-	PKG_CONFIG_PATH=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig
+	PKG_CONFIG_PATH=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig \
+	$(PERRY_SWIFTPM_ENV_EXTRA)
 
 PERRY_SWIFTPM = \
 	$(SWIFT_NATIVE_PATH)/swift build \
