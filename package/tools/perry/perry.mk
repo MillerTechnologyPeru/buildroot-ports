@@ -16,9 +16,10 @@ PERRY_DEPENDENCIES = \
 
 # Every provider that builds on Linux, by SwiftPM: all of Perry's but
 # JavaScriptCore's and WPE WebKit's web extension, which need WebKit, which
-# Buildroot doesn't build for PowerPC. Darwin's Swift runtime and the
-# frameworks in Perry's Darwin directory (SwiftUI, Combine and the other
-# Swift overlays) are compiled on a Mac, so they are not here. The loader,
+# Buildroot doesn't build for PowerPC, and Metal's, which no PowerPC Mac
+# program calls. Nor Swift: Darwin's Swift runtime and the frameworks in
+# Perry's Darwin directory (SwiftUI, Combine and the other Swift overlays)
+# are compiled on a Mac, and no PowerPC Mac program is written in Swift. The loader,
 # Carbon's provider and the C libraries the providers link (SQLite with
 # Apple's options, lzfse, swift-cmark) are built by Perry's own scripts with
 # the cross compiler.
@@ -37,7 +38,7 @@ PERRY_PRODUCTS = \
 	PerryCoreSpotlight PerryGameKit PerryGameController PerryMediaPlayer \
 	PerryCoreLocation PerryCoreBluetooth PerryCoreWLAN PerryMapKit \
 	PerryMapKitAppKit PerryCloudKit PerryCoreData PerryCoreGraphics \
-	PerryQuartzCore PerryUIKit PerryAppKit PerryMetal
+	PerryQuartzCore PerryUIKit PerryAppKit
 
 PERRY_PREFIX = $(@D)/.toolchains/ppc-sysroot
 PERRY_SWIFTPM_DIR = $(@D)/.build/release
