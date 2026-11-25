@@ -80,7 +80,7 @@ PERRY_PRODUCTS = \
 	PerryCloudKit PerryUserNotifications PerryCallKit PerryIntents \
 	PerryWatchConnectivity PerryCoreSpotlight PerryModelIO \
 	PerryLocalAuthentication PerryPushKit
-PERRY_SWIFTPM_FLAGS = -Xcc -ffixed-r9
+PERRY_TARGET_CFLAGS = -ffixed-r9
 PERRY_ARCH_CFLAGS = -march=armv7-a -mfloat-abi=hard -ffixed-r9
 else
 # i386 Mac programs, which macOS ran until 10.14, and the providers of what
@@ -103,7 +103,7 @@ PERRY_PRODUCTS = \
 	PerryMediaPlayer PerryCoreLocation PerryCoreBluetooth PerryCoreWLAN \
 	PerryMapKit PerryMapKitAppKit PerryCloudKit PerryStoreKit \
 	PerryLocalAuthentication PerryCoreSpotlight PerryIntents Perrysteam_api
-PERRY_SWIFTPM_FLAGS = -Xcc -freg-struct-return -Xcc -msse2 -Xcc -mfpmath=sse
+PERRY_TARGET_CFLAGS = -freg-struct-return -msse2 -mfpmath=sse
 PERRY_ARCH_CFLAGS = -march=i686 -msse2 -mfpmath=sse
 PERRY_EXTRA_LIBRARIES = \
 	$(@D)/.build/c/libPerryCarbon.so \
@@ -183,6 +183,19 @@ PERRY_SWIFTPM_DIR = $(@D)/.build/release
 # lacks (swift.mk), written before the build as pkg-swift.mk's packages do.
 PERRY_PRE_BUILD_HOOKS += SWIFT_GENERATE_DESTINATION_FILE
 
+# A copy of it with the architecture's flags in its target-only lists: SwiftPM
+# also builds the macros and plugins for the build machine, whose compiler
+# rejects them ("unsupported option '-ffixed-r9' for target
+# 'x86_64-unknown-linux-gnu'") if they are given by -Xcc.
+PERRY_DESTINATION = $(@D)/.build/destination.json
+define PERRY_WRITE_DESTINATION
+	mkdir -p $(@D)/.build
+	sed -e 's|"extra-cc-flags":\[|"extra-cc-flags":[$(foreach flag,$(PERRY_TARGET_CFLAGS), "$(flag)",)|' \
+		-e 's|"extra-swiftc-flags":\[|"extra-swiftc-flags":[$(foreach flag,$(PERRY_TARGET_CFLAGS), "-Xcc", "$(flag)",)|' \
+		$(SWIFT_DESTINATION_FILE) > $(PERRY_DESTINATION)
+endef
+PERRY_PRE_BUILD_HOOKS += PERRY_WRITE_DESTINATION
+
 # SwiftPM's native build system is named because the swift-build backend,
 # the default from Swift 6.4, ignores --destination.
 #
@@ -199,12 +212,11 @@ PERRY_SWIFTPM_ENV = \
 PERRY_SWIFTPM = \
 	$(SWIFT_NATIVE_PATH)/swift build \
 		--build-system native \
-		--destination $(SWIFT_DESTINATION_FILE) \
+		--destination $(PERRY_DESTINATION) \
 		--configuration release \
 		-j $(PARALLEL_JOBS) \
 		-Xcc -I$(PERRY_PREFIX)/usr/include \
-		-Xlinker -L$(PERRY_PREFIX)/usr/lib \
-		$(PERRY_SWIFTPM_FLAGS)
+		-Xlinker -L$(PERRY_PREFIX)/usr/lib
 
 # The C libraries the providers link that Buildroot has no package for, or
 # not built as Perry's are (SQLite with Apple's options, lzfse, swift-cmark),
