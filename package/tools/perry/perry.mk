@@ -5,8 +5,9 @@
 ################################################################################
 
 # Upstream has no releases; this commit is master's, with JavaScriptCore's
-# provider over WPE WebKit's and its pixels' bytes kept in order on PowerPC.
-PERRY_VERSION = aba6fd86b61ccdd5efe38f508614689c6030b7a3
+# provider over WPE WebKit's, its pixels' bytes kept in order on PowerPC,
+# and its Foundation building again on armv7.
+PERRY_VERSION = 2a66724017f7cd40a583cfb1f2662d04fa14bb01
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
@@ -111,9 +112,10 @@ PERRY_EXTRA_LIBRARIES = \
 define PERRY_BUILD_C_PROVIDERS
 	mkdir -p $(@D)/.build/c
 	$(TARGET_CC) $(PERRY_ARCH_CFLAGS) $(PERRY_C_CFLAGS) -freg-struct-return \
-		-I$(@D)/Sources/PerryCarbon/include -shared \
-		$(wildcard $(@D)/Sources/PerryCarbon/*.c) \
-		-o $(@D)/.build/c/libPerryCarbon.so -lm -lpthread -Wl,-z,defs
+		-I$(@D)/Sources/CPerryCarbon/include \
+		-I$(STAGING_DIR)/usr/include/freetype2 -shared \
+		$(wildcard $(@D)/Sources/CPerryCarbon/*.c) \
+		-o $(@D)/.build/c/libPerryCarbon.so -lm -lpthread -lfreetype -Wl,-z,defs
 	$(TARGET_CC) $(PERRY_ARCH_CFLAGS) $(PERRY_C_CFLAGS) -freg-struct-return \
 		-I$(@D)/Sources/PerryQuickTime -shared \
 		$(wildcard $(@D)/Sources/PerryQuickTime/*.c) \
