@@ -169,8 +169,7 @@ PERRY_LOADER_FILE = $(PERRY_SWIFTPM_DIR)/perry
 endif
 
 # Accelerate's provider is BLAS and LAPACK over OpenBLAS, which Buildroot
-# offers only for the CPUs it has a target for (none for a generic x86 one):
-# without it, no Accelerate.
+# offers only for the CPUs it has a target for: without it, no Accelerate.
 ifeq ($(BR2_PACKAGE_OPENBLAS),y)
 PERRY_DEPENDENCIES += openblas
 else
