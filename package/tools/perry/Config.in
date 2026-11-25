@@ -53,7 +53,8 @@ config BR2_PACKAGE_PERRY
 	  x86_64 Mac ones.
 
 	  On 32-bit ARM it builds perry32, which runs armv7 iOS programs
-	  as a 32-bit process, with iOS's providers only (no AppKit). In
+	  as a 32-bit process, with the providers of what iOS 10, the last
+	  iOS to run armv7 programs, has, and nothing else. In
 	  a 32-bit companion it becomes the image's /usr/lib32/perry, and
 	  perry hands armv7 programs to it.
 
