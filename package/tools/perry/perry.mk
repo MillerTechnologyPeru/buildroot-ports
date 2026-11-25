@@ -42,6 +42,10 @@ PERRY_PRODUCTS = \
 PERRY_PREFIX = $(@D)/.toolchains/ppc-sysroot
 PERRY_SWIFTPM_DIR = $(@D)/.build/release
 
+# The SwiftPM destination file, which a tree seeded from a toolchain release
+# lacks (swift.mk), written before the build as pkg-swift.mk's packages do.
+PERRY_PRE_BUILD_HOOKS += SWIFT_GENERATE_DESTINATION_FILE
+
 # SwiftPM's native build system is named because the swift-build backend,
 # the default from Swift 6.4, ignores --destination. Its pkg-config is
 # Buildroot's, which looks in the staging tree.
