@@ -59,10 +59,10 @@ config BR2_PACKAGE_PERRY
 
 	  On 32-bit PowerPC, perry runs ppc Mac OS X 10.3 to 10.5
 	  programs, translating between Darwin's ppc calling convention
-	  and Linux's, with Carbon's provider too, but not Security's,
-	  whose BoringSSL is little-endian only, Core Data's, which
-	  Swift's compiler cannot yet build for PowerPC, or Metal's and
-	  UIKit's.
+	  and Linux's, with the providers of what Mac OS X 10.5 has
+	  (Carbon's among them) and nothing later; but not Security's,
+	  whose BoringSSL is little-endian only, or Core Data's, which
+	  Swift's compiler cannot yet build for PowerPC.
 
 	  Building it resolves Perry's Swift package dependencies and
 	  fetches SQLite, lzfse and swift-cmark, so it needs network
