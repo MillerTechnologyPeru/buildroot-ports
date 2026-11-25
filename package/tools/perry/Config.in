@@ -1,6 +1,12 @@
+config BR2_PACKAGE_PERRY_ARCH_SUPPORTS
+	bool
+	default y if BR2_aarch64 || BR2_x86_64
+	default y if BR2_arm && BR2_ARM_CPU_ARMV7A # perry32
+	default y if BR2_powerpc
+
 config BR2_PACKAGE_PERRY
 	bool "perry"
-	depends on BR2_powerpc # its ppc loader; other architectures to come
+	depends on BR2_PACKAGE_PERRY_ARCH_SUPPORTS
 	depends on BR2_PACKAGE_SWIFT
 	depends on !BR2_STATIC_LIBS # sdl3
 	depends on BR2_USE_WCHAR # sdl3
@@ -37,19 +43,26 @@ config BR2_PACKAGE_PERRY
 	  frameworks they call are Linux libraries ("providers")
 	  written mostly in Swift.
 
-	  On 32-bit PowerPC it runs ppc Mac OS X 10.3 to 10.5 programs:
-	  the perry loader, which translates between Darwin's ppc
-	  calling convention and Linux's, and every provider that builds
-	  on Linux (libSystem, libobjc, Foundation, CoreGraphics, AppKit,
-	  Carbon, OpenGL, IOKit, Accelerate and the rest), but
-	  JavaScriptCore's, which needs WebKit, Security's, whose
-	  BoringSSL is little-endian only, Core Data's, which Swift's
-	  compiler cannot yet build for PowerPC, and Metal's and UIKit's.
-	  No Swift:
-	  Darwin's Swift runtime and Perry's Swift overlays are compiled
-	  on a Mac and not included.
-	  They are installed in /usr/lib/perry, where perry finds them
-	  beside itself.
+	  It installs the loader and every provider that builds on Linux
+	  in /usr/lib/perry, where the loader finds them beside itself,
+	  but JavaScriptCore's, which needs WebKit. No Swift: Darwin's
+	  Swift runtime and Perry's Swift overlays are compiled on a Mac
+	  and not included.
+
+	  On arm64 and x86_64, perry runs arm64 iOS and Mac programs, and
+	  x86_64 Mac ones.
+
+	  On 32-bit ARM it builds perry32, which runs armv7 iOS programs
+	  as a 32-bit process, with iOS's providers only (no AppKit). In
+	  a 32-bit companion it becomes the image's /usr/lib32/perry, and
+	  perry hands armv7 programs to it.
+
+	  On 32-bit PowerPC, perry runs ppc Mac OS X 10.3 to 10.5
+	  programs, translating between Darwin's ppc calling convention
+	  and Linux's, with Carbon's provider too, but not Security's,
+	  whose BoringSSL is little-endian only, Core Data's, which
+	  Swift's compiler cannot yet build for PowerPC, or Metal's and
+	  UIKit's.
 
 	  Building it resolves Perry's Swift package dependencies and
 	  fetches SQLite, lzfse and swift-cmark, so it needs network
@@ -58,11 +71,11 @@ config BR2_PACKAGE_PERRY
 	  https://github.com/MillerTechnologyPeru/Perry
 
 comment "perry needs the Swift runtime (the buildroot-swift external)"
-	depends on BR2_powerpc
+	depends on BR2_PACKAGE_PERRY_ARCH_SUPPORTS
 	depends on !BR2_PACKAGE_SWIFT
 
 comment "perry needs a toolchain w/ C++, wchar, threads, dynamic library, gcc >= 10"
-	depends on BR2_powerpc
+	depends on BR2_PACKAGE_PERRY_ARCH_SUPPORTS
 	depends on BR2_PACKAGE_SWIFT
 	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_USE_WCHAR || \
 		!BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS || \
