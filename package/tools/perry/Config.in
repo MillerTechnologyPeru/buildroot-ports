@@ -43,8 +43,9 @@ config BR2_PACKAGE_PERRY
 	  on Linux (libSystem, libobjc, Foundation, CoreGraphics, AppKit,
 	  Carbon, OpenGL, IOKit, Accelerate and the rest), but
 	  JavaScriptCore's, which needs WebKit, Security's, whose
-	  BoringSSL is little-endian only, and Metal's and UIKit's. No
-	  Swift:
+	  BoringSSL is little-endian only, Core Data's, which Swift's
+	  compiler cannot yet build for PowerPC, and Metal's and UIKit's.
+	  No Swift:
 	  Darwin's Swift runtime and Perry's Swift overlays are compiled
 	  on a Mac and not included.
 	  They are installed in /usr/lib/perry, where perry finds them
