@@ -37,20 +37,27 @@ config BR2_PACKAGE_PERRY
 	select BR2_PACKAGE_SQLITE
 	select BR2_PACKAGE_OPENBLAS
 	select BR2_PACKAGE_DBUS
+	# JavaScriptCore's provider, on 64-bit, wherever webkitgtk can be built
+	select BR2_PACKAGE_WEBKITGTK if (BR2_aarch64 || BR2_x86_64) && \
+		BR2_PACKAGE_WEBKITGTK_ARCH_SUPPORTS && BR2_PACKAGE_HAS_LIBEGL && \
+		(BR2_PACKAGE_LIBGTK3 || BR2_PACKAGE_LIBGTK4) && \
+		BR2_TOOLCHAIN_HAS_THREADS_NPTL && BR2_TOOLCHAIN_GCC_AT_LEAST_11 && \
+		BR2_HOST_GCC_AT_LEAST_7 && !BR2_BINFMT_FLAT
 	help
 	  Perry runs Mac programs' Mach-O binaries on Linux natively:
 	  their own code runs on the CPU, and the libraries and
 	  frameworks they call are Linux libraries ("providers")
 	  written mostly in Swift.
 
-	  It installs the loader and every provider that builds on Linux
-	  in /usr/lib/perry, where the loader finds them beside itself,
-	  but JavaScriptCore's, which needs WebKit. No Swift: Darwin's
+	  It installs the loader and its providers in /usr/lib/perry,
+	  where the loader finds them beside itself. No Swift: Darwin's
 	  Swift runtime and Perry's Swift overlays are compiled on a Mac
 	  and not included.
 
 	  On arm64 and x86_64, perry runs arm64 iOS and Mac programs, and
-	  x86_64 Mac ones.
+	  x86_64 Mac ones, with every provider but Carbon's: JavaScriptCore's
+	  too where webkitgtk can be built (with a GTK and EGL), which it
+	  then selects.
 
 	  On 32-bit ARM it builds perry32, which runs armv7 iOS programs
 	  as a 32-bit process, with the providers of what iOS 10, the last
