@@ -47,15 +47,24 @@ PERRY_SWIFTPM_DIR = $(@D)/.build/release
 PERRY_PRE_BUILD_HOOKS += SWIFT_GENERATE_DESTINATION_FILE
 
 # SwiftPM's native build system is named because the swift-build backend,
-# the default from Swift 6.4, ignores --destination. Its pkg-config is
-# Buildroot's, which looks in the staging tree.
+# the default from Swift 6.4, ignores --destination.
+#
+# SwiftPM reads .pc files itself rather than running pkg-config, so it is
+# pointed at the staging tree's: left to its own search it found the host's
+# libxml-2.0.pc, and linked the build machine's libxml2.
+PERRY_SWIFTPM_ENV = \
+	PATH=$(BR_PATH):$(SWIFT_NATIVE_PATH) \
+	PKG_CONFIG_SYSROOT_DIR=$(STAGING_DIR) \
+	PKG_CONFIG_LIBDIR=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig \
+	PKG_CONFIG_PATH=$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig
+
 define PERRY_BUILD_CMDS
 	cd $(@D) && PATH=$(BR_PATH) PPC_CC=$(TARGET_CC) PPC_PREFIX=$(PERRY_PREFIX) \
 		Scripts/build-ppc-sysroot.sh
 	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-loader.sh
 	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-carbon.sh
 	$(foreach product,$(PERRY_PRODUCTS),
-		cd $(@D) && PATH=$(BR_PATH):$(SWIFT_NATIVE_PATH) \
+		cd $(@D) && $(PERRY_SWIFTPM_ENV) \
 		$(SWIFT_NATIVE_PATH)/swift build \
 			--build-system native \
 			--destination $(SWIFT_DESTINATION_FILE) \
