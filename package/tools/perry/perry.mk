@@ -41,16 +41,24 @@ PERRY_PRODUCTS_MAC = \
 	PerryOpenCL
 
 ifeq ($(BR2_powerpc),y)
-# 32-bit PowerPC: PowerPC Mac programs, Mac OS X 10.3 to 10.5. No UIKit,
-# Metal or Model I/O, which none of them calls; no Security, over
-# swift-crypto, whose BoringSSL builds for little-endian machines only
-# ("Unknown target CPU"); and no Core Data, over CoreModel, whose
-# typed-throws async functions crash Swift 6.4.2's code generation for
-# PowerPC (an assertion in IRGenFunction::createErrorResultSlot). The loader,
-# which translates between Darwin's ppc calling convention and Linux's, and
-# Carbon's provider are built by Perry's own scripts.
+# 32-bit PowerPC: PowerPC Mac programs, Mac OS X 10.3 to 10.5, so the
+# providers of what Mac OS X 10.5 has and nothing later: no libc++,
+# libcompression, UniformTypeIdentifiers, OpenCL, AVFoundation, Network or
+# the rest. libdispatch (10.6) is the exception, as Foundation's and
+# libSystem's providers are built on it. Not Security, over swift-crypto,
+# whose BoringSSL builds for little-endian machines only ("Unknown target
+# CPU"), nor Core Data, over CoreModel, whose typed-throws async functions
+# crash Swift 6.4.2's code generation for PowerPC (an assertion in
+# IRGenFunction::createErrorResultSlot). The loader, which translates
+# between Darwin's ppc calling convention and Linux's, and Carbon's provider
+# are built by Perry's own scripts.
 PERRY_LOADER = perry
-PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) $(PERRY_PRODUCTS_MAC)
+PERRY_PRODUCTS = \
+	PerrySystem Perryobjc Perrydispatch PerryFoundation PerryCFNetwork \
+	Perryxml2 Perryz Perrybz2 Perryexpat Perrysqlite3 Perryiconv \
+	Perryresolv Perryicucore Perryxar Perrycurl PerryStdCXX PerryBom \
+	PerryOpenAL PerryAudioToolbox PerryAccelerate PerrySystemConfiguration \
+	PerryIOKit PerryOpenGL PerryCoreGraphics PerryQuartzCore PerryAppKit
 define PERRY_BUILD_LOADER
 	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-loader.sh
 	cd $(@D) && PPC_CC=$(TARGET_CC) Scripts/build-ppc-carbon.sh
