@@ -42,8 +42,9 @@ config BR2_PACKAGE_PERRY
 	  calling convention and Linux's, and every provider that builds
 	  on Linux (libSystem, libobjc, Foundation, CoreGraphics, AppKit,
 	  Carbon, OpenGL, IOKit, Accelerate and the rest), but
-	  JavaScriptCore's, which needs WebKit. Darwin's Swift runtime and
-	  Perry's Swift overlays are compiled on a Mac and not included.
+	  JavaScriptCore's, which needs WebKit, and Metal's. No Swift:
+	  Darwin's Swift runtime and Perry's Swift overlays are compiled
+	  on a Mac and not included.
 	  They are installed in /usr/lib/perry, where perry finds them
 	  beside itself.
 
