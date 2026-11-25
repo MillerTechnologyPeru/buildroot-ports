@@ -69,15 +69,28 @@ else ifeq ($(BR2_arm),y)
 # 32-bit ARM: armv7 iOS programs, Objective-C and C only, run as their own
 # 32-bit process, perry32, which perry runs for them: built in the 32-bit
 # companion, whose /usr/lib/perry becomes the image's /usr/lib32/perry, and
-# linked beside perry there (post-build-lib32.sh). iOS's providers only: no
-# Mac frameworks; no LowHeap, a heap above 4 GB; no Metal, which iOS has
-# only on arm64. Darwin's armv7 code treats r9 as scratch, which Linux's
-# keeps across calls, so nothing of Perry's keeps a value in it
-# (-ffixed-r9); and perry32 is linked at a fixed address far above the
+# linked beside perry there (post-build-lib32.sh). The providers of what
+# iOS 10, the last iOS to run armv7 programs, has, and nothing else: no Mac
+# frameworks (AppKit, CoreWLAN) or libraries iOS has no API for (libcurl,
+# libxar, Bom); nothing later than iOS 10 (Network, CarPlay, DeviceCheck,
+# MetricKit, BackgroundTasks); no LowHeap, a heap above 4 GB; no Metal,
+# which iOS has only on arm64. Darwin's armv7 code treats r9 as scratch,
+# which Linux's keeps across calls, so nothing of Perry's keeps a value in
+# it (-ffixed-r9); and perry32 is linked at a fixed address far above the
 # programs, which are not position independent.
 PERRY_LOADER = perry32
-PERRY_PRODUCTS = $(PERRY_PRODUCTS_COMMON) PerrySecurity PerryCoreData PerryUIKit \
-	PerryModelIO
+PERRY_PRODUCTS = \
+	PerrySystem Perryobjc Perrydispatch PerryFoundation PerryCFNetwork \
+	Perryxml2 Perryz Perrybz2 Perryexpat Perrysqlite3 Perryiconv \
+	Perryresolv Perryicucore Perrycompression PerryCXX PerryStdCXX \
+	PerryUIKit PerryCoreGraphics PerryQuartzCore PerrySecurity \
+	PerryCoreData PerryUniformTypeIdentifiers PerryAccelerate PerryOpenAL \
+	PerryAudioToolbox PerryAVFoundation PerryVideoToolbox PerryMediaPlayer \
+	PerrySystemConfiguration PerryCoreTelephony PerryStoreKit PerryGameKit \
+	PerryGameController PerryCoreLocation PerryCoreBluetooth PerryMapKit \
+	PerryCloudKit PerryUserNotifications PerryCallKit PerryIntents \
+	PerryWatchConnectivity PerryCoreSpotlight PerryModelIO \
+	PerryLocalAuthentication PerryPushKit
 PERRY_SWIFTPM_FLAGS = -Xcc -ffixed-r9
 PERRY_LOADER_CFLAGS = -march=armv7-a -mfloat-abi=hard -ffixed-r9
 PERRY_LOADER_SOURCES = \
