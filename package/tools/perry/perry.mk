@@ -6,8 +6,8 @@
 
 # Upstream has no releases; this commit is master's, with JavaScriptCore's
 # provider over WPE WebKit's, its pixels' bytes kept in order on PowerPC,
-# and its Foundation building again on armv7.
-PERRY_VERSION = 2a66724017f7cd40a583cfb1f2662d04fa14bb01
+# its Foundation building on armv7, and Carbon moving into Swift.
+PERRY_VERSION = e59bc1d8da72578623972c263199446f5d8fa57d
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
@@ -37,7 +37,7 @@ PERRY_LOADER = perry
 PERRY_PRODUCTS = \
 	PerrySystem Perryobjc Perrydispatch PerryFoundation PerryCFNetwork \
 	Perryxml2 Perryz Perrybz2 Perryexpat Perrysqlite3 Perryiconv \
-	Perryresolv Perryicucore Perryxar Perrycurl PerryStdCXX PerryBom \
+	Perryresolv Perryncurses Perryicucore Perryxar Perrycurl PerryStdCXX PerryBom \
 	PerryOpenAL PerryAudioToolbox PerryAccelerate PerrySystemConfiguration \
 	PerryIOKit PerryOpenGL PerryCoreGraphics PerryQuartzCore PerryAppKit
 define PERRY_BUILD_LOADER
@@ -95,7 +95,7 @@ else
 PERRY_PRODUCTS = \
 	PerrySystem Perryobjc Perrydispatch PerryFoundation PerryCFNetwork \
 	Perryxml2 Perryz Perrybz2 Perryexpat Perrysqlite3 Perryiconv \
-	Perryresolv Perryicucore Perryxar Perrycurl Perrycompression PerryCXX \
+	Perryresolv Perryncurses Perryicucore Perryxar Perrycurl Perrycompression PerryCXX \
 	PerryStdCXX PerryBom PerryExecShim PerryOpenAL PerryAudioToolbox \
 	PerryAccelerate PerrySystemConfiguration PerryIOKit PerryOpenGL \
 	PerryOpenCL PerryCoreGraphics PerryQuartzCore PerryAppKit \
@@ -145,7 +145,7 @@ PERRY_LOADER = perry
 PERRY_PRODUCTS = \
 	PerrySystem Perryobjc Perrydispatch PerryFoundation Perryxml2 Perryz \
 	PerryCXX PerryStdCXX PerryExecShim PerryOpenAL Perrybz2 PerryBom \
-	Perryxar Perrycurl Perryexpat Perrysqlite3 Perryiconv Perryresolv \
+	Perryxar Perrycurl Perryexpat Perrysqlite3 Perryiconv Perryresolv Perryncurses \
 	Perryicucore Perrycompression PerryCFNetwork \
 	PerryUniformTypeIdentifiers PerryAccelerate PerryAudioToolbox \
 	PerryUserNotifications PerryAVFoundation PerrySystemConfiguration \
