@@ -7,7 +7,7 @@
 # Upstream has no releases; this commit is master's, with JavaScriptCore's
 # provider over WPE WebKit's, its pixels' bytes kept in order on PowerPC,
 # its Foundation building on armv7, and Carbon moving into Swift.
-PERRY_VERSION = e59bc1d8da72578623972c263199446f5d8fa57d
+PERRY_VERSION = 3bb66979822a2782e87e45de9d18f48ec6105c4e
 PERRY_SITE = $(call github,MillerTechnologyPeru,Perry,$(PERRY_VERSION))
 PERRY_LICENSE = MIT
 PERRY_LICENSE_FILES = LICENSE
